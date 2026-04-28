@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P いかさま大富豪</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        body { background: #2E8B57; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        .screen { display: none; }
+        .active { display: block; }
+        input, button { font-size: 16px; padding: 8px; margin: 5px; }
+        .card { display: inline-block; background: white; color: black; padding: 15px; margin: 5px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .player-box { border: 1px dashed white; padding: 10px; margin: 5px; display: inline-block; cursor: crosshair; }
+        #cheat-menu { display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); padding: 20px; border: 2px solid red; z-index: 100;}
+    </style>
+</head>
+<body>
+
+    <div id="setup-screen" class="screen active">
+        <h1>いかさま大富豪</h1>
+        <h3>ホスト（部屋を作る）</h3>
+        <button onclick="createRoom()">部屋を作る（自分がサーバーになる）</button>
+        <p id="room-id-display"></p>
+        <hr>
+        <h3>ゲスト（部屋に入る）</h3>
+        <input type="text" id="join-room-id" placeholder="ホストから聞いたIDを入力">
+        <button onclick="joinRoom()">部屋に入る</button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div>あなたの名前: <span id="my-name-display"></span></div>
+        <hr>
+        <div id="opponents"></div> <hr>
+        <div id="table" style="height: 60px; font-size: 24px;">場にカードはありません</div>
+        <hr>
+        <div id="my-hand"></div> </div>
+
+    <div id="cheat-menu">
+        <h3>🤫 捏造メニュー</h3>
+        <input type="text" id="cheat-val" placeholder="例: ♠2">
+        <button onclick="sendCheat()">場に出す</button>
+    </div>
+
+    <script>
+        let peer;
+        let connections = []; // ホスト用：繋がっているゲストたち
+        let myConnection;     // ゲスト用：ホストへの接続
+        let isHost = false;
+        let myId = "";
+        let myName = "";
+
+        // === ゲームの状態（ホストだけが管理し、全員に配る） ===
+        let gameState = {
+            players: {},
+            tableCards: []
+        };
+
+        // ==========================================
+        // 1. 通信のセットアップ（ホスト側）
+        // ==========================================
+        function createRoom() {
+            myName = prompt("あなたの名前は？") || "ホスト";
+            isHost = true;
+            peer = new Peer(); // ID自動生成
+
+            peer.on('open', (id) => {
+                myId = id;
+                document.getElementById('room-id-display').innerHTML = `あなたのルームID:<br><b>${id}</b><br>※これを友達に教えてください`;
+                
+                // ホスト自身もプレイヤーとして登録
+                gameState.players[myId] = { name: myName, hand: ["♠3", "♥5", "♣8", "♦J"] };
+                showGameScreen();
+                updateUI(gameState);
+            });
+
+            // ゲストが接続してきた時の処理
+            peer.on('connection', (conn) => {
+                connections.push(conn);
+                
+                conn.on('data', (data) => {
+                    handleGuestRequest(data, conn);
+                });
+
+                conn.on('open', () => {
+                    // 新しいゲストをゲームに追加（仮の初期手札）
+                    gameState.players[conn.peer] = { name: "ゲスト", hand: ["♥4", "♠7", "♦10", "♣K"] };
+                    broadcastState(); // 全員に最新状態を共有
+                });
+            });
+        }
+
+        // ==========================================
+        // 2. 通信のセットアップ（ゲスト側）
+        // ==========================================
+        function joinRoom() {
+            const roomId = document.getElementById('join-room-id').value;
+            if (!roomId) return alert("IDを入力してください");
+            
+            myName = prompt("あなたの名前は？") || "ゲスト";
+            peer = new Peer();
+
+            peer.on('open', (id) => {
+                myId = id;
+                myConnection = peer.connect(roomId); // ホストに接続
+
+                myConnection.on('open', () => {
+                    // 接続成功したら名前を送信（今回は簡略化）
+                    showGameScreen();
+                });
+
+                // ホストからデータ（ゲームの状況や、覗き見結果）を受け取る
+                myConnection.on('data', (data) => {
+                    if (data.type === 'update') {
+                        updateUI(data.state);
+                    } else if (data.type === 'peek_result') {
+                        alert(`🤫 【覗き見成功】\n対象の手札: ${data.hand.join(', ')}`);
+                    }
+                });
+            });
+        }
+
+        // ==========================================
+        // 3. ゲームロジック（ホストが処理する）
+        // ==========================================
+        function handleGuestRequest(data, conn) {
+            const playerId = conn.peer;
+            const player = gameState.players[playerId];
+
+            if (data.type === 'play') {
+                // 通常プレイ
+                const idx = player.hand.indexOf(data.card);
+                if (idx !== -1) player.hand.splice(idx, 1);
+                gameState.tableCards = [data.card];
+                broadcastState();
+
+            } else if (data.type === 'cheat_play') {
+                // 捏造プレイ（手札からランダムに1枚消す）
+                if (player.hand.length > 0) {
+                    player.hand.splice(Math.floor(Math.random() * player.hand.length), 1);
+                }
+                gameState.tableCards = [data.card];
+                broadcastState();
+
+            } else if (data.type === 'peek') {
+                // 覗き見（リクエストした人にだけ送り返す）
+                const targetHand = gameState.players[data.targetId]?.hand || [];
+                conn.send({ type: 'peek_result', hand: targetHand });
+            }
+        }
+
+        function broadcastState() {
+            // ホスト自身の画面も更新
+            updateUI(gameState);
+            // 繋がっているゲスト全員にデータを送信
+            connections.forEach(conn => {
+                conn.send({ type: 'update', state: gameState });
+            });
+        }
+
+        // ==========================================
+        // 4. 画面の操作と表示（全員共通）
+        // ==========================================
+        function updateUI(state) {
+            gameState = state; // 最新状態を保存
+            document.getElementById('my-name-display').innerText = myName;
+            
+            // 場のカード
+            document.getElementById('table').innerText = "場: " + (state.tableCards[0] || "なし");
+
+            // 相手の表示
+            const oppDiv = document.getElementById('opponents');
+            oppDiv.innerHTML = '';
+            for (let id in state.players) {
+                if (id !== myId) {
+                    const p = state.players[id];
+                    // ダブルクリック（ダブルタップ）で覗き見発動
+                    oppDiv.innerHTML += `<div class="player-box" ondblclick="requestPeek('${id}')">相手<br>枚数: ${p.hand.length}</div>`;
+                }
+            }
+
+            // 自分の手札
+            const handDiv = document.getElementById('my-hand');
+            handDiv.innerHTML = '';
+            const myHand = state.players[myId]?.hand || [];
+            myHand.forEach(card => {
+                const btn = document.createElement('div');
+                btn.className = 'card';
+                btn.innerText = card;
+                btn.onclick = () => playCard(card);
+                handDiv.appendChild(btn);
+            });
+        }
+
+        // 通常カードを出す
+        function playCard(card) {
+            if (isHost) {
+                // ホスト自身のアクション
+                handleGuestRequest({ type: 'play', card: card }, { peer: myId });
+            } else {
+                // ゲストはホストに送信
+                myConnection.send({ type: 'play', card: card });
+            }
+        }
+
+        // 覗き見をリクエスト
+        function requestPeek(targetId) {
+            if (isHost) {
+                const targetHand = gameState.players[targetId]?.hand || [];
+                alert(`🤫 【覗き見成功】\n対象の手札: ${targetHand.join(', ')}`);
+            } else {
+                myConnection.send({ type: 'peek', targetId: targetId });
+            }
+        }
+
+        // いかさまメニューを表示 (Shift+V)
+        document.addEventListener('keydown', (e) => {
+            if (e.shiftKey && e.key === 'V') {
+                const menu = document.getElementById('cheat-menu');
+                menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+            }
+        });
+
+        // 捏造カードを出す
+        function sendCheat() {
+            const card = document.getElementById('cheat-val').value;
+            if (isHost) {
+                handleGuestRequest({ type: 'cheat_play', card: card }, { peer: myId });
+            } else {
+                myConnection.send({ type: 'cheat_play', card: card });
+            }
+            document.getElementById('cheat-menu').style.display = 'none';
+        }
+
+        // 画面切り替え
+        function showGameScreen() {
+            document.getElementById('setup-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+        }
+    </script>
+</body>
+</html>
