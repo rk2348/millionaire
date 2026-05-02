@@ -6,78 +6,238 @@
     <title>オンライン大富豪</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
+        /* === ベーススタイル === */
         body { 
-            background: #2E8B57; color: white; font-family: sans-serif; 
-            text-align: center; margin: 0; padding: 10px; overflow: hidden;
+            background: #2E8B57; 
+            color: white; 
+            font-family: sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            padding: 10px; 
+            overflow: hidden;
         }
-        .screen { display: none; }
-        .active { display: block; }
+        .screen { 
+            display: none; 
+        }
+        .active { 
+            display: block; 
+        }
         input, button { 
-            font-size: 16px; padding: 8px; margin: 5px; 
-            border-radius: 5px; border: none; 
+            font-size: 16px; 
+            padding: 8px; 
+            margin: 5px; 
+            border-radius: 5px; 
+            border: none; 
         }
-        button { background-color: #333; color: white; cursor: pointer; transition: 0.2s; }
-        button:hover:not(:disabled) { background-color: #555; }
-        button:disabled { background-color: #555; opacity: 0.5; cursor: not-allowed; }
+        button { 
+            background-color: #333; 
+            color: white; 
+            cursor: pointer; 
+            transition: 0.2s; 
+        }
+        button:hover:not(:disabled) { 
+            background-color: #555; 
+        }
+        button:disabled { 
+            background-color: #555; 
+            opacity: 0.5; 
+            cursor: not-allowed; 
+        }
         
+        /* === ロビーUI === */
         .lobby-box {
-            background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; 
-            max-width: 400px; margin: 20px auto;
+            background: rgba(0, 0, 0, 0.3); 
+            padding: 20px; 
+            border-radius: 10px; 
+            max-width: 400px; 
+            margin: 20px auto;
         }
         .player-list-item {
-            background: rgba(255,255,255,0.1); margin: 5px 0; padding: 10px;
-            border-radius: 5px; font-weight: bold; letter-spacing: 1px;
-            user-select: none; /* テキスト選択を防ぐ（連打しやすくするため） */
+            background: rgba(255, 255, 255, 0.1); 
+            margin: 5px 0; 
+            padding: 10px;
+            border-radius: 5px; 
+            font-weight: bold; 
+            letter-spacing: 1px;
+            user-select: none;
+        }
+        .name-input-group { 
+            background: rgba(0, 0, 0, 0.5); 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
         }
 
+        /* === ゲームUI === */
         .card { 
-            display: inline-block; background: white; color: black; 
-            width: 50px; height: 70px; line-height: 70px;
-            margin: 5px; border-radius: 5px; cursor: pointer; 
-            font-weight: bold; font-size: 18px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            display: inline-block; 
+            background: white; 
+            color: black; 
+            width: 50px; 
+            height: 70px; 
+            line-height: 70px;
+            margin: 5px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 18px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
             transition: transform 0.1s, border 0.1s;
             user-select: none;
+            box-sizing: border-box;
         }
-        .card:hover { transform: translateY(-5px); }
-        .card.selected { border: 3px solid #ffcc00; transform: translateY(-10px); }
+        .card:hover { 
+            transform: translateY(-5px); 
+        }
+        .card.selected { 
+            border: 3px solid #ffcc00; 
+            transform: translateY(-10px); 
+        }
         
         .player-box { 
-            border: 2px dashed rgba(255,255,255,0.5); padding: 10px; margin: 5px; 
-            display: inline-block; border-radius: 8px;
-            background-color: rgba(0,0,0,0.2); cursor: crosshair; transition: 0.3s;
+            border: 2px dashed rgba(255, 255, 255, 0.5); 
+            padding: 10px; 
+            margin: 5px; 
+            display: inline-block; 
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.2); 
+            cursor: crosshair; 
+            transition: 0.3s;
             user-select: none;
         }
-        .active-turn { border-color: #ffcc00; background-color: rgba(255, 204, 0, 0.2); transform: scale(1.05); }
-        
-        /* --- ハックメニュー（いかさま） --- */
-        #cheat-menu { 
-            display: none; position: fixed; top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); background: #111; 
-            padding: 25px; border: 2px solid #9400D3; border-radius: 10px;
-            z-index: 100; box-shadow: 0 0 30px rgba(148, 0, 211, 0.8);
-            color: #E6E6FA; text-align: left;
+        .active-turn { 
+            border-color: #ffcc00; 
+            background-color: rgba(255, 204, 0, 0.2); 
+            transform: scale(1.05); 
         }
-        .cheat-btn { background-color: #4B0082; width: 100%; margin: 5px 0; font-weight: bold; }
-        .cheat-btn:hover { background-color: #800080; }
-        
-        .action-area { margin: 15px 0; }
-        #message-area { height: 24px; color: #ffcc00; font-weight: bold; }
-        .name-input-group { background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .action-area { 
+            margin: 15px 0; 
+        }
+        #message-area { 
+            height: 24px; 
+            color: #ffcc00; 
+            font-weight: bold; 
+        }
 
+        /* === リザルト演出用オーバーレイ === */
         #result-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 1000; flex-direction: column;
-            align-items: center; justify-content: center; backdrop-filter: blur(5px);
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85); 
+            z-index: 1000; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center; 
+            backdrop-filter: blur(5px);
         }
-        @keyframes winAnim { 0% { transform: scale(0.5) translateY(50px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
-        @keyframes loseAnim { 0% { opacity: 0; transform: translateY(-20px); } 100% { opacity: 1; transform: translateY(0); } }
-        .win-text { color: #FFD700; text-shadow: 0 0 20px #FF8C00; font-size: 64px; margin: 0 0 10px 0; animation: winAnim 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        .lose-text { color: #708090; text-shadow: 0 0 10px #000; font-size: 50px; margin: 0 0 10px 0; animation: loseAnim 1.5s ease-out forwards; }
+        @keyframes winAnim { 
+            0% { transform: scale(0.5) translateY(50px); opacity: 0; } 
+            100% { transform: scale(1) translateY(0); opacity: 1; } 
+        }
+        @keyframes loseAnim { 
+            0% { opacity: 0; transform: translateY(-20px); } 
+            100% { opacity: 1; transform: translateY(0); } 
+        }
+        .win-text { 
+            color: #FFD700; 
+            text-shadow: 0 0 20px #FF8C00; 
+            font-size: 64px; 
+            margin: 0 0 10px 0; 
+            animation: winAnim 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+        }
+        .lose-text { 
+            color: #708090; 
+            text-shadow: 0 0 10px #000; 
+            font-size: 50px; 
+            margin: 0 0 10px 0; 
+            animation: loseAnim 1.5s ease-out forwards; 
+        }
+
+        /* === 透視（Peek）用モーダル === */
+        #peek-modal {
+            display: none; 
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            background: rgba(10, 10, 10, 0.95); 
+            padding: 25px; 
+            border: 2px solid #00FA9A; 
+            border-radius: 10px;
+            z-index: 105; 
+            box-shadow: 0 0 40px rgba(0, 250, 154, 0.6);
+            color: white; 
+            text-align: center; 
+            min-width: 300px;
+            max-width: 90vw;
+        }
+        #peek-cards {
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            margin: 15px 0;
+            gap: 5px;
+        }
+
+        /* === ハックメニュー（いかさま） === */
+        #cheat-menu { 
+            display: none; 
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            background: #111; 
+            padding: 25px; 
+            border: 2px solid #9400D3; 
+            border-radius: 10px;
+            z-index: 100; 
+            box-shadow: 0 0 30px rgba(148, 0, 211, 0.8);
+            color: #E6E6FA; 
+            text-align: left;
+            width: 320px;
+        }
+        .cheat-btn { 
+            background-color: #4B0082; 
+            width: 100%; 
+            margin: 5px 0; 
+            font-weight: bold; 
+        }
+        .cheat-btn:hover { 
+            background-color: #800080; 
+        }
+        .card-selector-grid {
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center;
+            max-height: 220px; 
+            overflow-y: auto; 
+            margin-top: 10px; 
+            background: rgba(0, 0, 0, 0.5); 
+            padding: 10px; 
+            border-radius: 5px;
+            border: 1px solid #4B0082;
+        }
+        /* セレクター用の縮小カード */
+        .card-sm { 
+            width: 38px; 
+            height: 55px; 
+            line-height: 55px; 
+            font-size: 14px; 
+            margin: 2px;
+        }
+        .card-sm:hover {
+            transform: translateY(-3px) scale(1.1);
+            border: 2px solid #9400D3;
+        }
     </style>
 </head>
 <body>
 
+    <!-- ================= 1. セットアップ画面 ================= -->
     <div id="setup-screen" class="screen active">
         <h1>🃏 オンライン大富豪</h1>
         <div class="lobby-box">
@@ -95,11 +255,12 @@
         </div>
     </div>
 
+    <!-- ================= 2. 待機部屋（ロビー）画面 ================= -->
     <div id="lobby-screen" class="screen">
         <h2>🚪 待機ルーム</h2>
         <div style="font-size: 18px; margin-bottom: 20px;">
             ルームID: <b id="lobby-room-id" style="font-size: 40px; color: #ffcc00; letter-spacing: 4px; display: block; margin-top: 10px;">----</b>
-            <span id="lobby-id-hint" style="font-size: 12px; color: #ccc;">このIDを教えてください</span>
+            <span id="lobby-id-hint" style="font-size: 12px; color: #ccc;">このIDを友達に教えてください</span>
         </div>
         
         <div class="lobby-box">
@@ -111,12 +272,18 @@
             <button id="btn-start-game" onclick="startGame()" style="display:none; background-color:#ffcc00; color:#000; font-size: 18px; font-weight:bold; padding: 10px 30px;" disabled>2人以上で開始可能</button>
             <div id="waiting-msg" style="color: #ccc; font-weight: bold; display: none;">ホストが開始するのを待っています...</div>
         </div>
-        <div style="margin-top: 30px;"><button onclick="leaveRoom()" style="background-color: #777; padding: 8px 20px;">🔙 タイトルに戻る</button></div>
+        <div style="margin-top: 30px;">
+            <button onclick="leaveRoom()" style="background-color: #777; padding: 8px 20px;">🔙 タイトルに戻る</button>
+        </div>
     </div>
 
+    <!-- ================= 3. ゲーム画面 ================= -->
     <div id="game-screen" class="screen">
-        <!-- 名前をクリックでいかさまメニュー展開 -->
-        <div>あなたの名前: <b id="my-name-display" onclick="openCheatMenu()" title="クリックで..." style="cursor: pointer; text-decoration: underline;"></b> <span id="my-status"></span></div>
+        <div>
+            あなたの名前: 
+            <b id="my-name-display" onclick="openCheatMenu()" title="クリックで..." style="cursor: pointer; text-decoration: underline;"></b> 
+            <span id="my-status"></span>
+        </div>
         <div id="message-area"></div>
         <hr style="border-color: rgba(255,255,255,0.2);">
         
@@ -137,7 +304,7 @@
         <div id="my-hand"></div> 
     </div>
 
-    <!-- リザルト -->
+    <!-- ================= 4. リザルト画面 ================= -->
     <div id="result-overlay">
         <h1 id="result-title"></h1>
         <h3 id="result-subtitle" style="color: #ddd; font-size: 24px; margin-bottom: 40px; font-weight: normal;"></h3>
@@ -147,16 +314,27 @@
         </div>
     </div>
 
-    <!-- 裏メニュー（いかさま用） -->
+    <!-- ================= 5. 透視（Peek）モーダル ================= -->
+    <div id="peek-modal">
+        <h3 style="margin-top:0; color: #00FA9A; border-bottom: 1px solid #00FA9A; padding-bottom: 5px;">👁️ 透視完了</h3>
+        <p id="peek-target-name" style="font-weight: bold; margin-top: 10px;"></p>
+        <div id="peek-cards">
+            <!-- 透視したカードがここに描画される -->
+        </div>
+        <button onclick="document.getElementById('peek-modal').style.display='none'" style="margin-top: 15px; background-color: #444;">閉じる</button>
+    </div>
+
+    <!-- ================= 6. 裏メニュー（いかさま用） ================= -->
     <div id="cheat-menu">
         <h3 style="margin-top:0; color: #ff44ff; border-bottom: 1px solid #ff44ff; padding-bottom: 5px;">👁️ SYSTEM OVERRIDE</h3>
-        <p style="font-size: 12px; color: #aaa; margin-bottom: 15px;">※相手のプレイヤー枠ダブルクリックで手札透視</p>
+        <p style="font-size: 12px; color: #aaa; margin-bottom: 5px; text-align: center;">👇 捏造して場に出すカードを選択 👇</p>
         
-        <div>
-            <input type="text" id="cheat-val" placeholder="捏造する文字 (例: ♠A)" style="width: 140px; margin-right: 5px; color: #000;">
-            <button class="cheat-btn" onclick="sendCheatFake()" style="width: auto;">🃏 強制出陣</button>
+        <!-- ビジュアルカードセレクター -->
+        <div id="card-selector" class="card-selector-grid">
+            <!-- JavaScriptで全カードが生成される -->
         </div>
-        <button class="cheat-btn" onclick="sendCheatBomb()" style="margin-top: 15px;">💣 場を爆破してターン強奪</button>
+        
+        <button class="cheat-btn" onclick="sendCheatBomb()" style="margin-top: 15px;">💣 場を完全に爆破し、ターンを強奪する</button>
         
         <div style="text-align: right; margin-top: 20px;">
             <button onclick="document.getElementById('cheat-menu').style.display='none'" style="background: transparent; border: 1px solid #777; color: #ccc;">閉じる</button>
@@ -164,55 +342,125 @@
     </div>
 
     <script>
-        let peer; let connections = []; let myConnection; let isHost = false;
-        let myId = ""; let myName = ""; let selectedCards = []; 
+        // === グローバル変数の宣言 ===
+        let peer; 
+        let connections = []; 
+        let myConnection; 
+        let isHost = false;
+        let myId = ""; 
+        let myName = ""; 
+        let selectedCards = []; 
 
         // いかさま用の状態管理
         let cheatClickCount = 0;
         let isCheatMode = false;
 
+        // 大富豪のカード定義
         const RANK_MAP = { '3':1, '4':2, '5':3, '6':4, '7':5, '8':6, '9':7, '10':8, 'J':9, 'Q':10, 'K':11, 'A':12, '2':13, 'Joker':14 };
         const SUITS = ['♠', '♥', '♦', '♣'];
 
-        let gameState = { isStarted: false, isFinished: false, winnerId: null, players: {}, turnOrder: [], currentTurnIdx: 0, tableCards: [], lastPlayedId: null, message: "" };
+        // ゲーム状態の管理オブジェクト
+        let gameState = { 
+            isStarted: false, 
+            isFinished: false, 
+            winnerId: null, 
+            players: {}, 
+            turnOrder: [], 
+            currentTurnIdx: 0, 
+            tableCards: [], 
+            lastPlayedId: null, 
+            message: "" 
+        };
 
+        // ページ読み込み時の初期化処理
         document.addEventListener('DOMContentLoaded', () => {
             const savedName = localStorage.getItem('daifugo_playerName');
-            if (savedName) document.getElementById('player-name').value = savedName;
+            if (savedName) {
+                document.getElementById('player-name').value = savedName;
+            }
+            // いかさま用のカードセレクターを動的生成する
+            generateAllCardsUI();
         });
 
+        // 捏造メニュー用のカード一覧を生成する関数
+        function generateAllCardsUI() {
+            const selector = document.getElementById('card-selector');
+            let html = '';
+            
+            for (let s of SUITS) {
+                for (let v in RANK_MAP) {
+                    if (v !== 'Joker') {
+                        const isRed = (s === '♥' || s === '♦');
+                        const colorStyle = isRed ? 'color: red;' : 'color: black;';
+                        // クリック時に直接カード文字列を渡す
+                        html += `<div class="card card-sm" style="${colorStyle}" onclick="sendCheatFake('${s + v}')">${s + v}</div>`;
+                    }
+                }
+            }
+            // ジョーカーの追加
+            html += `<div class="card card-sm" style="color: black;" onclick="sendCheatFake('Joker')">Joker</div>`;
+            selector.innerHTML = html;
+        }
+
+        // プレイヤー名の取得と保存
         function getPlayerName() {
             let name = document.getElementById('player-name').value.trim();
-            if (!name) name = 'Player_' + Math.floor(Math.random() * 10000);
+            if (!name) {
+                name = 'Player_' + Math.floor(Math.random() * 10000);
+            }
             localStorage.setItem('daifugo_playerName', name);
             return name;
         }
 
+        // 画面の切り替え処理
         function switchScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(screen => {
+                screen.classList.remove('active');
+            });
             document.getElementById(screenId).classList.add('active');
         }
 
+        // ルームからの退出・初期化処理
         function leaveRoom() {
-            if (peer) { peer.destroy(); peer = null; }
-            isHost = false; myConnection = null; connections = [];
-            isCheatMode = false; cheatClickCount = 0; // いかさま状態リセット
-            gameState = { isStarted: false, isFinished: false, winnerId: null, players: {}, turnOrder: [], currentTurnIdx: 0, tableCards: [], lastPlayedId: null, message: "" };
+            if (peer) { 
+                peer.destroy(); 
+                peer = null; 
+            }
+            isHost = false; 
+            myConnection = null; 
+            connections = [];
+            isCheatMode = false; 
+            cheatClickCount = 0;
+            
+            gameState = { 
+                isStarted: false, 
+                isFinished: false, 
+                winnerId: null, 
+                players: {}, 
+                turnOrder: [], 
+                currentTurnIdx: 0, 
+                tableCards: [], 
+                lastPlayedId: null, 
+                message: "" 
+            };
             
             document.getElementById('btn-start-game').style.display = 'none';
             document.getElementById('waiting-msg').style.display = 'none';
             document.getElementById('lobby-id-hint').style.display = 'inline';
             document.getElementById('result-overlay').style.display = 'none';
             document.getElementById('cheat-menu').style.display = 'none';
+            document.getElementById('peek-modal').style.display = 'none';
             
             switchScreen('setup-screen');
         }
 
         // ==========================================
-        // いかさま解除ロジック (ロビーで名前を9回クリック)
+        // いかさま解除ロジック
         // ==========================================
         function handleSelfClick() {
             if (isCheatMode) return;
+            
             cheatClickCount++;
             if (cheatClickCount === 9) {
                 isCheatMode = true;
@@ -223,68 +471,103 @@
         // ==========================================
         // 通信セットアップ
         // ==========================================
+        
         function createRoom() {
             myName = getPlayerName();
             const shortId = Math.random().toString(36).substring(2, 7).toUpperCase();
+            
             switchScreen('lobby-screen');
             document.getElementById('lobby-room-id').innerText = "接続中...";
             
-            isHost = true; peer = new Peer(shortId);
-            peer.on('error', (err) => { alert(`通信エラー`); leaveRoom(); });
+            isHost = true; 
+            peer = new Peer(shortId);
+            
+            peer.on('error', (err) => { 
+                alert(`通信エラー`); 
+                leaveRoom(); 
+            });
+            
             peer.on('open', (id) => {
                 myId = id;
                 document.getElementById('lobby-room-id').innerText = id;
                 document.getElementById('btn-start-game').style.display = 'inline-block';
+                
                 gameState.players[myId] = { name: myName, hand: [], isPass: false };
                 updateLobbyUI();
             });
+            
             peer.on('connection', (conn) => {
                 connections.push(conn);
-                conn.on('data', (data) => handleGuestRequest(data, conn));
+                
+                conn.on('data', (data) => {
+                    handleGuestRequest(data, conn);
+                });
+                
                 conn.on('close', () => {
                     delete gameState.players[conn.peer];
                     connections = connections.filter(c => c.peer !== conn.peer);
                     updateLobbyUI(); 
-                    if(gameState.isStarted && !gameState.isFinished) broadcastState(); 
+                    if (gameState.isStarted && !gameState.isFinished) {
+                        broadcastState(); 
+                    }
                 });
             });
         }
 
         function joinRoom() {
             const roomId = document.getElementById('join-room-id').value.trim().toUpperCase();
-            if (!roomId) return alert("IDを入力してください");
-            myName = getPlayerName(); peer = new Peer();
+            if (!roomId) {
+                return alert("IDを入力してください");
+            }
+            
+            myName = getPlayerName(); 
+            peer = new Peer();
 
-            peer.on('error', (err) => { alert("部屋が見つかりません。"); leaveRoom(); });
+            peer.on('error', (err) => { 
+                alert("部屋が見つかりません。"); 
+                leaveRoom(); 
+            });
+            
             peer.on('open', (id) => {
-                myId = id; myConnection = peer.connect(roomId);
+                myId = id; 
+                myConnection = peer.connect(roomId);
+                
                 myConnection.on('open', () => {
                     switchScreen('lobby-screen');
                     document.getElementById('lobby-room-id').innerText = roomId;
                     document.getElementById('lobby-id-hint').style.display = 'none';
                     document.getElementById('waiting-msg').style.display = 'block';
+                    
                     myConnection.send({ type: 'join', name: myName });
                 });
+                
                 myConnection.on('data', (data) => {
-                    // 通信データの振り分け
                     if (data.type === 'lobby_update') {
-                        gameState.players = data.players; // クライアント側でもプレイヤーリストを保持
+                        gameState.players = data.players;
                         renderLobbyPlayers();
-                    }
-                    else if (data.type === 'game_start') {
+                    } else if (data.type === 'game_start') {
                         document.getElementById('result-overlay').style.display = 'none';
                         switchScreen('game-screen');
+                    } else if (data.type === 'update') {
+                        updateGameUI(data.state);
+                    } else if (data.type === 'peek_result') {
+                        // アラートではなく、専用のモーダルで手札を表示する
+                        showPeekModal(data.targetName, data.hand);
                     }
-                    else if (data.type === 'update') updateGameUI(data.state);
-                    else if (data.type === 'peek_result') alert(`👁️ 【透視完了】\n対象の手札:\n${data.hand}`);
                 });
-                myConnection.on('close', () => { alert("ホストとの接続が切断されました。"); leaveRoom(); });
+                
+                myConnection.on('close', () => { 
+                    alert("ホストとの接続が切断されました。"); 
+                    leaveRoom(); 
+                });
             });
         }
 
         function updateLobbyUI() {
             renderLobbyPlayers();
-            connections.forEach(conn => conn.send({ type: 'lobby_update', players: gameState.players }));
+            connections.forEach(conn => {
+                conn.send({ type: 'lobby_update', players: gameState.players });
+            });
         }
 
         function renderLobbyPlayers() {
@@ -293,82 +576,122 @@
             const listDiv = document.getElementById('lobby-players');
             
             listDiv.innerHTML = playersArr.map(([id, p]) => {
-                // 自分の名前だった場合のみクリックイベント（いかさまトリガー）を付与
                 const clickAttr = (id === myId) ? `onclick="handleSelfClick()"` : '';
                 return `<div class="player-list-item" ${clickAttr}>👤 ${p.name}</div>`;
             }).join('');
             
             if (isHost) {
                 const btn = document.getElementById('btn-start-game');
-                if (playersArr.length >= 2) { btn.disabled = false; btn.innerText = "ゲームを開始する"; } 
-                else { btn.disabled = true; btn.innerText = "2人以上で開始可能"; }
+                if (playersArr.length >= 2) { 
+                    btn.disabled = false; 
+                    btn.innerText = "ゲームを開始する"; 
+                } else { 
+                    btn.disabled = true; 
+                    btn.innerText = "2人以上で開始可能"; 
+                }
             }
         }
 
         // ==========================================
         // ゲームロジック (ホスト側)
         // ==========================================
+        
         function startGame() {
-            if(!isHost) return;
-            if(Object.keys(gameState.players).length < 2) { alert("参加者が2人以上必要です。"); return; }
+            if (!isHost) return;
+            if (Object.keys(gameState.players).length < 2) { 
+                alert("参加者が2人以上必要です。"); 
+                return; 
+            }
 
             let deck = [];
-            for (let s of SUITS) { for (let v in RANK_MAP) { if (v !== 'Joker') deck.push({ suit: s, value: v, rank: RANK_MAP[v], display: s+v }); } }
+            for (let s of SUITS) { 
+                for (let v in RANK_MAP) { 
+                    if (v !== 'Joker') {
+                        deck.push({ suit: s, value: v, rank: RANK_MAP[v], display: s + v }); 
+                    }
+                } 
+            }
             deck.push({ suit: '🃏', value: 'Joker', rank: RANK_MAP['Joker'], display: 'Joker' });
             deck.push({ suit: '🃏', value: 'Joker', rank: RANK_MAP['Joker'], display: 'Joker' });
 
-            for(let i = deck.length - 1; i > 0; i--){
+            for (let i = deck.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [deck[i], deck[j]] = [deck[j], deck[i]];
             }
 
             gameState.turnOrder = Object.keys(gameState.players);
-            gameState.currentTurnIdx = 0; gameState.tableCards = []; gameState.lastPlayedId = null;
-            gameState.isStarted = true; gameState.isFinished = false; gameState.winnerId = null; 
+            gameState.currentTurnIdx = 0; 
+            gameState.tableCards = []; 
+            gameState.lastPlayedId = null;
+            gameState.isStarted = true; 
+            gameState.isFinished = false; 
+            gameState.winnerId = null; 
             gameState.message = "ゲーム開始！";
 
-            for(let id of gameState.turnOrder) { gameState.players[id].hand = []; gameState.players[id].isPass = false; }
+            for (let id of gameState.turnOrder) { 
+                gameState.players[id].hand = []; 
+                gameState.players[id].isPass = false; 
+            }
+            
             let pIdx = 0;
-            while(deck.length > 0) {
+            while (deck.length > 0) {
                 gameState.players[gameState.turnOrder[pIdx]].hand.push(deck.pop());
                 pIdx = (pIdx + 1) % gameState.turnOrder.length;
             }
-            for(let id of gameState.turnOrder) gameState.players[id].hand.sort((a,b) => a.rank - b.rank);
+            
+            for (let id of gameState.turnOrder) {
+                gameState.players[id].hand.sort((a, b) => a.rank - b.rank);
+            }
 
             document.getElementById('result-overlay').style.display = 'none';
-            connections.forEach(conn => conn.send({ type: 'game_start' }));
-            switchScreen('game-screen'); broadcastState();
+            document.getElementById('peek-modal').style.display = 'none';
+            connections.forEach(conn => {
+                conn.send({ type: 'game_start' });
+            });
+            
+            switchScreen('game-screen'); 
+            broadcastState();
         }
 
         function handleGuestRequest(data, conn) {
             const playerId = conn.peer;
-            if (data.type === 'join') { gameState.players[playerId] = { name: data.name, hand: [], isPass: false }; updateLobbyUI(); return; }
             
-            const player = gameState.players[playerId]; if (!player) return;
-
-            // 通常アクション
-            if (data.type === 'play') processPlay(playerId, data.cardIndices);
-            else if (data.type === 'pass') processPass(playerId);
-            
-            // いかさまアクション (ホストは受け入れて処理する)
-            else if (data.type === 'cheat_peek') {
-                const targetHand = gameState.players[data.targetId]?.hand.map(c=>c.display) || [];
-                conn.send({ type: 'peek_result', hand: targetHand.join(' / ') });
+            if (data.type === 'join') { 
+                gameState.players[playerId] = { name: data.name, hand: [], isPass: false }; 
+                updateLobbyUI(); 
+                return; 
             }
-            else if (data.type === 'cheat_fake') {
-                if (player.hand.length > 0) player.hand.splice(Math.floor(Math.random() * player.hand.length), 1);
+            
+            const player = gameState.players[playerId]; 
+            if (!player) return;
+
+            if (data.type === 'play') {
+                processPlay(playerId, data.cardIndices);
+            } else if (data.type === 'pass') {
+                processPass(playerId);
+            } else if (data.type === 'cheat_peek') {
+                // 要求してきたユーザーにのみ、対象の手札配列と名前を返す
+                const targetName = gameState.players[data.targetId]?.name || "不明";
+                const targetHand = gameState.players[data.targetId]?.hand.map(c => c.display) || [];
+                conn.send({ type: 'peek_result', targetName: targetName, hand: targetHand });
+            } else if (data.type === 'cheat_fake') {
+                if (player.hand.length > 0) {
+                    player.hand.splice(Math.floor(Math.random() * player.hand.length), 1);
+                }
                 gameState.tableCards = [{ suit: '?', value: '?', rank: 0, display: data.cardDisplay }];
                 gameState.lastPlayedId = playerId;
                 gameState.message = `⚠️ ${player.name}が謎のカードを出しました`;
-                for(let id in gameState.players) gameState.players[id].isPass = false;
+                for (let id in gameState.players) {
+                    gameState.players[id].isPass = false;
+                }
                 checkWinCondition(player, playerId);
-            }
-            else if (data.type === 'cheat_bomb') {
-                gameState.tableCards = []; // 場を消し飛ばす
+            } else if (data.type === 'cheat_bomb') {
+                gameState.tableCards = []; 
                 gameState.lastPlayedId = null;
-                // 強制的にターンを奪った人の順番に変更する
                 gameState.currentTurnIdx = gameState.turnOrder.indexOf(playerId);
-                for(let id in gameState.players) gameState.players[id].isPass = false;
+                for (let id in gameState.players) {
+                    gameState.players[id].isPass = false;
+                }
                 gameState.message = `💣 ${player.name} が場を爆破し、ターンを奪いました！`;
                 broadcastState();
             }
@@ -377,52 +700,80 @@
         function checkWinCondition(player, playerId) {
             if (player.hand.length === 0) {
                 gameState.message = `🎉 ${player.name} が上がりました！`;
-                gameState.isFinished = true; gameState.winnerId = playerId;
+                gameState.isFinished = true; 
+                gameState.winnerId = playerId;
                 broadcastState(); 
-            } else { advanceTurn(); }
+            } else { 
+                advanceTurn(); 
+            }
         }
 
         function processPlay(playerId, indices) {
             if (gameState.turnOrder[gameState.currentTurnIdx] !== playerId) return; 
-            const player = gameState.players[playerId]; const playedCards = indices.map(i => player.hand[i]);
+            
+            const player = gameState.players[playerId]; 
+            const playedCards = indices.map(i => player.hand[i]);
+            
             if (playedCards.length === 0) return;
+            
             const isSameValue = playedCards.every(c => c.value === playedCards[0].value || c.value === 'Joker');
-            if(!isSameValue) return; 
+            if (!isSameValue) return; 
 
             if (gameState.tableCards.length > 0) {
                 if (playedCards.length !== gameState.tableCards.length) return;
                 if (playedCards[0].rank <= gameState.tableCards[0].rank) return;
             }
 
-            indices.sort((a,b)=>b-a).forEach(i => player.hand.splice(i, 1));
-            gameState.tableCards = playedCards; gameState.lastPlayedId = playerId;
-            for(let id in gameState.players) gameState.players[id].isPass = false;
+            indices.sort((a, b) => b - a).forEach(i => {
+                player.hand.splice(i, 1);
+            });
+            
+            gameState.tableCards = playedCards; 
+            gameState.lastPlayedId = playerId;
+            
+            for (let id in gameState.players) {
+                gameState.players[id].isPass = false;
+            }
+            
             gameState.message = `${player.name}がカードを出しました`;
             checkWinCondition(player, playerId);
         }
 
         function processPass(playerId) {
             if (gameState.turnOrder[gameState.currentTurnIdx] !== playerId) return;
+            
             gameState.players[playerId].isPass = true;
             gameState.message = `${gameState.players[playerId].name}がパスしました`;
             advanceTurn();
         }
 
         function advanceTurn() {
-            let nextIdx = gameState.currentTurnIdx; let loopCount = 0;
+            let nextIdx = gameState.currentTurnIdx; 
+            let loopCount = 0;
+            
             do {
-                nextIdx = (nextIdx + 1) % gameState.turnOrder.length; loopCount++;
+                nextIdx = (nextIdx + 1) % gameState.turnOrder.length; 
+                loopCount++;
+                
                 if (gameState.turnOrder[nextIdx] === gameState.lastPlayedId) {
-                    gameState.tableCards = []; gameState.message = "場が流れました";
-                    for(let id in gameState.players) gameState.players[id].isPass = false;
+                    gameState.tableCards = []; 
+                    gameState.message = "場が流れました";
+                    for (let id in gameState.players) {
+                        gameState.players[id].isPass = false;
+                    }
                     break; 
                 }
             } while (gameState.players[gameState.turnOrder[nextIdx]].isPass && loopCount < gameState.turnOrder.length);
-            gameState.currentTurnIdx = nextIdx; broadcastState();
+            
+            gameState.currentTurnIdx = nextIdx; 
+            broadcastState();
         }
 
         function broadcastState() {
-            updateGameUI(gameState); connections.forEach(conn => conn.send({ type: 'update', state: gameState }));
+            updateGameUI(gameState); 
+            connections.forEach(conn => {
+                conn.send({ type: 'update', state: gameState });
+            });
         }
 
         // ==========================================
@@ -433,28 +784,39 @@
             document.getElementById('my-name-display').innerText = myName;
             document.getElementById('message-area').innerText = state.message;
             
-            if (state.isFinished) showResultOverlay(state.winnerId);
-            else document.getElementById('result-overlay').style.display = 'none';
+            if (state.isFinished) {
+                showResultOverlay(state.winnerId);
+            } else {
+                document.getElementById('result-overlay').style.display = 'none';
+            }
 
             const currentTurnId = state.turnOrder[state.currentTurnIdx];
             const isMyTurn = (currentTurnId === myId) && state.isStarted && !state.isFinished;
 
             document.getElementById('btn-play').disabled = !isMyTurn;
             document.getElementById('btn-pass').disabled = !isMyTurn;
-            if(isMyTurn && state.tableCards.length === 0) document.getElementById('btn-pass').disabled = true; 
+            if (isMyTurn && state.tableCards.length === 0) {
+                document.getElementById('btn-pass').disabled = true; 
+            }
+            
             document.getElementById('my-status').innerText = isMyTurn ? "（🎯 あなたのターン！）" : "";
 
             const tableDiv = document.getElementById('table');
-            if (state.tableCards.length > 0) tableDiv.innerHTML = state.tableCards.map(c => renderCardHTML(c, false)).join('');
-            else tableDiv.innerText = "場にカードはありません";
+            if (state.tableCards.length > 0) {
+                tableDiv.innerHTML = state.tableCards.map(c => renderCardHTML(c, false)).join('');
+            } else {
+                tableDiv.innerText = "場にカードはありません";
+            }
 
-            const oppDiv = document.getElementById('opponents'); oppDiv.innerHTML = '';
+            const oppDiv = document.getElementById('opponents'); 
+            oppDiv.innerHTML = '';
+            
             for (let id in state.players) {
                 if (id !== myId) {
                     const p = state.players[id];
                     const activeClass = (id === currentTurnId && !state.isFinished) ? 'active-turn' : '';
                     const passText = p.isPass ? '<br><span style="color:gray;">(パス)</span>' : '';
-                    // 相手の枠にダブルクリックイベントを設定（いかさまモード時のみ機能する）
+                    
                     oppDiv.innerHTML += `
                         <div class="player-box ${activeClass}" ondblclick="requestPeek('${id}')">
                             ${p.name} <br> 🃏 ${p.hand ? p.hand.length : 0}枚 ${passText}
@@ -468,22 +830,32 @@
             const overlay = document.getElementById('result-overlay');
             const title = document.getElementById('result-title');
             const subtitle = document.getElementById('result-subtitle');
+            
             overlay.style.display = 'flex';
+            
             if (winnerId === myId) {
-                title.className = 'win-text'; title.innerText = "👑 WINNER 👑"; subtitle.innerText = "お見事！あなたの勝利です！";
+                title.className = 'win-text'; 
+                title.innerText = "👑 WINNER 👑"; 
+                subtitle.innerText = "お見事！あなたの勝利です！";
             } else {
-                title.className = 'lose-text'; title.innerText = "💀 LOSE...";
-                const winnerName = gameState.players[winnerId]?.name || "誰か"; subtitle.innerText = `${winnerName} があがりました`;
+                title.className = 'lose-text'; 
+                title.innerText = "💀 LOSE...";
+                const winnerName = gameState.players[winnerId]?.name || "誰か"; 
+                subtitle.innerText = `${winnerName} があがりました`;
             }
         }
 
         function playAgain() {
-            document.getElementById('result-overlay').style.display = 'none'; switchScreen('lobby-screen'); 
-            if (!isHost) document.getElementById('waiting-msg').style.display = 'block'; 
+            document.getElementById('result-overlay').style.display = 'none'; 
+            switchScreen('lobby-screen'); 
+            if (!isHost) {
+                document.getElementById('waiting-msg').style.display = 'block'; 
+            }
         }
 
         function renderCardHTML(card, isSelectable, index = -1) {
-            const colorStyle = (card.suit === '♥' || card.suit === '♦') ? 'color: red;' : '';
+            const isRed = (card.suit === '♥' || card.suit === '♦');
+            const colorStyle = isRed ? 'color: red;' : 'color: black;';
             const selectClass = selectedCards.includes(index) ? 'selected' : '';
             const clickAttr = (isSelectable && !gameState.isFinished) ? `onclick="toggleSelect(${index})"` : '';
             return `<div class="card ${selectClass}" style="${colorStyle}" ${clickAttr}>${card.display}</div>`;
@@ -497,61 +869,109 @@
 
         function toggleSelect(index) {
             const pos = selectedCards.indexOf(index);
-            if(pos === -1) selectedCards.push(index); else selectedCards.splice(pos, 1);
+            if (pos === -1) {
+                selectedCards.push(index); 
+            } else {
+                selectedCards.splice(pos, 1);
+            }
             renderMyHand(); 
         }
-        function clearSelection() { selectedCards = []; renderMyHand(); }
+
+        function clearSelection() { 
+            selectedCards = []; 
+            renderMyHand(); 
+        }
 
         function submitPlay() {
-            if(selectedCards.length === 0) return alert("カードを選択してください");
-            const myHand = gameState.players[myId].hand; const rank = myHand[selectedCards[0]].rank;
+            if (selectedCards.length === 0) return alert("カードを選択してください");
+            
+            const myHand = gameState.players[myId].hand; 
+            const rank = myHand[selectedCards[0]].rank;
             const isSame = selectedCards.every(i => myHand[i].value === myHand[selectedCards[0]].value || myHand[i].value === 'Joker');
-            if(!isSame) return alert("同じ数字のカードを選択してください");
-            if(gameState.tableCards.length > 0) {
-                if(selectedCards.length !== gameState.tableCards.length) return alert("場と同じ枚数を出してください");
-                if(rank <= gameState.tableCards[0].rank) return alert("場より強いカードを出してください");
+            
+            if (!isSame) return alert("同じ数字のカードを選択してください");
+            
+            if (gameState.tableCards.length > 0) {
+                if (selectedCards.length !== gameState.tableCards.length) return alert("場と同じ枚数を出してください");
+                if (rank <= gameState.tableCards[0].rank) return alert("場より強いカードを出してください");
             }
-            if (isHost) processPlay(myId, selectedCards); else myConnection.send({ type: 'play', cardIndices: selectedCards });
+            
+            if (isHost) {
+                processPlay(myId, selectedCards); 
+            } else {
+                myConnection.send({ type: 'play', cardIndices: selectedCards });
+            }
+            
             clearSelection();
         }
 
         function submitPass() {
-            if (isHost) processPass(myId); else myConnection.send({ type: 'pass' });
+            if (isHost) {
+                processPass(myId); 
+            } else {
+                myConnection.send({ type: 'pass' });
+            }
             clearSelection();
         }
 
         // ==========================================
         // クライアント側発信のいかさまアクション
         // ==========================================
+        
+        // --- 透視（Peek）機能 ---
         function requestPeek(targetId) {
             if (!isCheatMode || !gameState.isStarted || gameState.isFinished) return;
+            
             if (isHost) {
-                const targetHand = gameState.players[targetId]?.hand.map(c=>c.display) || [];
-                alert(`👁️ 【透視完了】\n対象の手札:\n${targetHand.join(' / ')}`);
+                const targetName = gameState.players[targetId]?.name || "不明";
+                const targetHand = gameState.players[targetId]?.hand.map(c => c.display) || [];
+                showPeekModal(targetName, targetHand);
             } else {
                 myConnection.send({ type: 'cheat_peek', targetId: targetId });
             }
         }
 
+        // 透視結果を描画する専用モーダル
+        function showPeekModal(name, handArray) {
+            document.getElementById('peek-target-name').innerText = `${name} の手札`;
+            
+            const cardsDiv = document.getElementById('peek-cards');
+            cardsDiv.innerHTML = handArray.map(displayVal => {
+                const isRed = displayVal.includes('♥') || displayVal.includes('♦');
+                const colorStyle = isRed ? 'color: red;' : 'color: black;';
+                // クラスに.cardを指定して、本物の手札と同じ見た目で表示
+                return `<div class="card" style="${colorStyle}">${displayVal}</div>`;
+            }).join('');
+            
+            document.getElementById('peek-modal').style.display = 'block';
+        }
+
+        // --- 捏造（Fake）メニュー ---
         function openCheatMenu() {
             if (!isCheatMode || !gameState.isStarted || gameState.isFinished) return;
             document.getElementById('cheat-menu').style.display = 'block';
         }
 
-        function sendCheatFake() {
-            const val = document.getElementById('cheat-val').value.trim();
-            if(!val) return alert("カード名を入力してください");
+        // 捏造したカードを出す
+        function sendCheatFake(val) {
+            if (!val) return;
             
-            if (isHost) handleGuestRequest({ type: 'cheat_fake', cardDisplay: val }, { peer: myId });
-            else myConnection.send({ type: 'cheat_fake', cardDisplay: val });
+            if (isHost) {
+                handleGuestRequest({ type: 'cheat_fake', cardDisplay: val }, { peer: myId });
+            } else {
+                myConnection.send({ type: 'cheat_fake', cardDisplay: val });
+            }
             
-            document.getElementById('cheat-val').value = '';
             document.getElementById('cheat-menu').style.display = 'none';
         }
 
+        // 場を爆破してターンを奪う
         function sendCheatBomb() {
-            if (isHost) handleGuestRequest({ type: 'cheat_bomb' }, { peer: myId });
-            else myConnection.send({ type: 'cheat_bomb' });
+            if (isHost) {
+                handleGuestRequest({ type: 'cheat_bomb' }, { peer: myId });
+            } else {
+                myConnection.send({ type: 'cheat_bomb' });
+            }
             
             document.getElementById('cheat-menu').style.display = 'none';
         }
