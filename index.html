@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2P いかさま大富豪 - マルチプレイ強化版</title>
+    <title>オンライン大富豪</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { 
@@ -20,7 +20,6 @@
         button:hover { background-color: #555; }
         button:disabled { background-color: #999; cursor: not-allowed; }
         
-        /* ロビー用UI */
         .lobby-box {
             background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; 
             max-width: 400px; margin: 20px auto;
@@ -58,14 +57,24 @@
         
         .action-area { margin: 15px 0; }
         #message-area { height: 24px; color: #ffcc00; font-weight: bold; }
+        
+        .name-input-group {
+            background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
 
     <!-- ================= 1. セットアップ画面 ================= -->
     <div id="setup-screen" class="screen active">
-        <h1>🃏 いかさま大富豪</h1>
+        <h1>🃏 オンライン大富豪</h1>
         <div class="lobby-box">
+            
+            <div class="name-input-group">
+                👤 あなたの名前:<br>
+                <input type="text" id="player-name" placeholder="未入力で自動設定" maxlength="10" style="text-align: center;">
+            </div>
+
             <h3>👑 ホスト（部屋を作る）</h3>
             <button onclick="createRoom()" style="background-color: #4CAF50; font-weight: bold;">部屋を作る</button>
             <hr style="margin: 20px 0; border-color: rgba(255,255,255,0.2);">
@@ -82,19 +91,21 @@
         <h2>🚪 待機ルーム</h2>
         <div style="font-size: 18px; margin-bottom: 20px;">
             ルームID: <b id="lobby-room-id" style="font-size: 40px; color: #ffcc00; letter-spacing: 4px; display: block; margin-top: 10px;">----</b>
-            <span style="font-size: 12px; color: #ccc;">このIDを友達に教えてください</span>
+            <span id="lobby-id-hint" style="font-size: 12px; color: #ccc;">このIDを友達に教えてください</span>
         </div>
         
         <div class="lobby-box">
             <h3>参加者一覧（<span id="player-count">1</span>人）</h3>
-            <div id="lobby-players">
-                <!-- 参加者がここに追加される -->
-            </div>
+            <div id="lobby-players"></div>
         </div>
 
-        <div style="margin-top: 20px; height: 50px;">
+        <div style="margin-top: 20px;">
             <button id="btn-start-game" onclick="startGame()" style="display:none; background-color:#ffcc00; color:#000; font-size: 18px; font-weight:bold; padding: 10px 30px;">ゲームを開始する</button>
             <div id="waiting-msg" style="color: #ccc; font-weight: bold; display: none;">ホストがゲームを開始するのを待っています...</div>
+        </div>
+
+        <div style="margin-top: 40px;">
+            <button onclick="leaveRoom()" style="background-color: #777; padding: 8px 20px;">🔙 タイトルに戻る</button>
         </div>
     </div>
 
@@ -119,14 +130,15 @@
             <button id="btn-play" onclick="submitPlay()" disabled>選択したカードを出す</button>
             <button id="btn-pass" onclick="submitPass()" disabled>パス</button>
             <button onclick="clearSelection()">選択解除</button>
+            <button onclick="leaveRoom()" style="background-color: #777; margin-left: 20px;">退出</button>
         </div>
         <div id="my-hand"></div> 
     </div>
 
-    <!-- ================= 4. 捏造メニュー ================= -->
+    <!-- ================= 4. 捏造メニュー（ホストにしか見えない） ================= -->
     <div id="cheat-menu">
         <h3 style="margin-top:0;">🤫 捏造メニュー</h3>
-        <p style="font-size: 12px; color: #ccc;">※強制的に場を上書きします。<br>裏で自分の手札がランダムに1枚消滅します。</p>
+        <p style="font-size: 12px; color: #ccc;">強制的に場を上書きし、手札を1枚消します</p>
         <input type="text" id="cheat-val" placeholder="例: ♠2" style="text-align: center; width: 80px;">
         <br>
         <button onclick="sendCheat()" style="background-color: #ff4444;">場に出す</button>
@@ -134,7 +146,6 @@
     </div>
 
     <script>
-        // --- 基本設定 ---
         let peer;
         let connections = []; 
         let myConnection;     
@@ -146,52 +157,69 @@
         const RANK_MAP = { '3':1, '4':2, '5':3, '6':4, '7':5, '8':6, '9':7, '10':8, 'J':9, 'Q':10, 'K':11, 'A':12, '2':13, 'Joker':14 };
         const SUITS = ['♠', '♥', '♦', '♣'];
 
-        // ゲーム状態
-        let gameState = {
-            isStarted: false,
-            players: {},       
-            turnOrder: [],     
-            currentTurnIdx: 0, 
-            tableCards: [],    
-            lastPlayedId: null,
-            message: ""        
-        };
+        let gameState = { isStarted: false, players: {}, turnOrder: [], currentTurnIdx: 0, tableCards: [], lastPlayedId: null, message: "" };
 
-        // --- 画面切り替え ---
+        // ページ読み込み時に保存された名前を復元
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedName = localStorage.getItem('daifugo_playerName');
+            if (savedName) document.getElementById('player-name').value = savedName;
+        });
+
+        function getPlayerName() {
+            let name = document.getElementById('player-name').value.trim();
+            if (!name) name = 'Player_' + Math.floor(Math.random() * 10000);
+            localStorage.setItem('daifugo_playerName', name);
+            return name;
+        }
+
         function switchScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
         }
 
         // ==========================================
-        // 1. 通信セットアップ（ロビー機能含む）
+        // 退室・タイトルに戻る処理
+        // ==========================================
+        function leaveRoom() {
+            if (peer) {
+                peer.destroy(); // 通信を完全に遮断
+                peer = null;
+            }
+            isHost = false;
+            myConnection = null;
+            connections = [];
+            gameState = { isStarted: false, players: {}, turnOrder: [], currentTurnIdx: 0, tableCards: [], lastPlayedId: null, message: "" };
+            
+            // UIのリセット
+            document.getElementById('btn-start-game').style.display = 'none';
+            document.getElementById('waiting-msg').style.display = 'none';
+            document.getElementById('lobby-id-hint').style.display = 'inline';
+            
+            switchScreen('setup-screen');
+        }
+
+        // ==========================================
+        // 通信セットアップ
         // ==========================================
         function createRoom() {
-            myName = prompt("あなたの名前を入力してください") || "ホスト";
-            // 5桁の短いIDを生成
+            myName = getPlayerName();
             const shortId = Math.random().toString(36).substring(2, 7).toUpperCase();
             
             switchScreen('lobby-screen');
             document.getElementById('lobby-room-id').innerText = "接続中...";
             
             isHost = true;
-            peer = new Peer(shortId); // 短いIDでサーバーを立てる
+            peer = new Peer(shortId);
 
             peer.on('error', (err) => {
-                if (err.type === 'unavailable-id') {
-                    alert("IDが衝突しました。もう一度「部屋を作る」を押してください。");
-                    location.reload();
-                } else {
-                    alert(`通信エラー: ${err.message}`);
-                }
+                alert(`通信エラー: ${err.type}`);
+                leaveRoom();
             });
 
             peer.on('open', (id) => {
                 myId = id;
                 document.getElementById('lobby-room-id').innerText = id;
                 document.getElementById('btn-start-game').style.display = 'inline-block';
-                
-                // ホスト自身を参加者リストに追加
                 gameState.players[myId] = { name: myName, hand: [], isPass: false };
                 updateLobbyUI();
             });
@@ -199,12 +227,11 @@
             peer.on('connection', (conn) => {
                 connections.push(conn);
                 conn.on('data', (data) => handleGuestRequest(data, conn));
-                
                 conn.on('close', () => {
                     delete gameState.players[conn.peer];
                     connections = connections.filter(c => c.peer !== conn.peer);
-                    updateLobbyUI(); // ロビー画面更新
-                    if(gameState.isStarted) broadcastState(); // ゲーム中なら状態更新
+                    updateLobbyUI(); 
+                    if(gameState.isStarted) broadcastState(); 
                 });
             });
         }
@@ -213,15 +240,12 @@
             const roomId = document.getElementById('join-room-id').value.trim().toUpperCase();
             if (!roomId) return alert("IDを入力してください");
             
-            myName = prompt("あなたの名前を入力してください") || "ゲスト";
+            myName = getPlayerName();
             peer = new Peer();
 
             peer.on('error', (err) => {
-                if(err.type === 'peer-unavailable') {
-                    alert("部屋が見つかりません。IDが間違っているか、ホストが退室しました。");
-                } else {
-                    alert(`接続エラー: ${err.message}`);
-                }
+                alert("部屋が見つかりません。IDが間違っているか、ホストが退室しました。");
+                leaveRoom();
             });
 
             peer.on('open', (id) => {
@@ -231,34 +255,28 @@
                 myConnection.on('open', () => {
                     switchScreen('lobby-screen');
                     document.getElementById('lobby-room-id').innerText = roomId;
+                    document.getElementById('lobby-id-hint').style.display = 'none';
                     document.getElementById('waiting-msg').style.display = 'block';
-                    
-                    // ホストに自分の名前を送信
                     myConnection.send({ type: 'join', name: myName });
                 });
 
                 myConnection.on('data', (data) => {
-                    if (data.type === 'lobby_update') {
-                        // ロビーの参加者リスト更新
-                        renderLobbyPlayers(data.players);
-                    } else if (data.type === 'game_start') {
-                        // ホストがゲームを開始した
-                        switchScreen('game-screen');
-                    } else if (data.type === 'update') {
-                        updateGameUI(data.state);
-                    } else if (data.type === 'peek_result') {
-                        alert(`🤫 【覗き見成功】\n対象の手札: ${data.hand}`);
-                    }
+                    if (data.type === 'lobby_update') renderLobbyPlayers(data.players);
+                    else if (data.type === 'game_start') switchScreen('game-screen');
+                    else if (data.type === 'update') updateGameUI(data.state);
+                });
+
+                // ホストが切断した時の処理
+                myConnection.on('close', () => {
+                    alert("ホストとの接続が切断されました。タイトルに戻ります。");
+                    leaveRoom();
                 });
             });
         }
 
-        // --- ロビーのUI更新処理 ---
         function updateLobbyUI() {
             const playerNames = Object.values(gameState.players).map(p => p.name);
             renderLobbyPlayers(playerNames);
-            
-            // ゲスト全員にロビーの最新リストを共有
             connections.forEach(conn => conn.send({ type: 'lobby_update', players: playerNames }));
         }
 
@@ -269,9 +287,8 @@
         }
 
         // ==========================================
-        // 2. ゲームロジック（ホスト専用）
+        // ゲームロジック
         // ==========================================
-        
         function startGame() {
             if(!isHost) return;
             if(Object.keys(gameState.players).length < 2) {
@@ -314,7 +331,6 @@
                 gameState.players[id].hand.sort((a,b) => a.rank - b.rank);
             }
 
-            // 全員に画面切り替えを指示
             connections.forEach(conn => conn.send({ type: 'game_start' }));
             switchScreen('game-screen');
             broadcastState();
@@ -335,17 +351,17 @@
             if (data.type === 'play') processPlay(playerId, data.cardIndices);
             else if (data.type === 'pass') processPass(playerId);
             else if (data.type === 'cheat_play') {
+                // セキュリティロック: ホスト以外からの捏造リクエストは完全に無視する
+                if (playerId !== myId) return; 
+
                 if (player.hand.length > 0) {
                     player.hand.splice(Math.floor(Math.random() * player.hand.length), 1);
                 }
                 gameState.tableCards = [{ suit: '?', value: '?', rank: 0, display: data.cardDisplay }];
                 gameState.lastPlayedId = playerId;
-                gameState.message = `${player.name}が謎のカードを出しました（捏造）`;
+                gameState.message = `${player.name}がカードを出しました`; // メッセージも偽装
                 for(let id in gameState.players) gameState.players[id].isPass = false;
                 advanceTurn();
-            } else if (data.type === 'peek') {
-                const targetHand = gameState.players[data.targetId]?.hand.map(c=>c.display) || [];
-                conn.send({ type: 'peek_result', hand: targetHand.join(', ') });
             }
         }
 
@@ -414,7 +430,7 @@
         }
 
         // ==========================================
-        // 3. ゲーム画面のUI操作
+        // UI操作
         // ==========================================
         function updateGameUI(state) {
             gameState = state; 
@@ -447,7 +463,7 @@
                     const activeClass = (id === currentTurnId) ? 'active-turn' : '';
                     const passText = p.isPass ? '<br><span style="color:gray;">(パス)</span>' : '';
                     oppDiv.innerHTML += `
-                        <div class="player-box ${activeClass}" ondblclick="requestPeek('${id}')" title="ダブルクリックで覗き見">
+                        <div class="player-box ${activeClass}">
                             ${p.name} <br> 🃏 ${p.hand ? p.hand.length : 0}枚 ${passText}
                         </div>`;
                 }
@@ -507,18 +523,11 @@
             clearSelection();
         }
 
-        function requestPeek(targetId) {
-            if (!gameState.isStarted) return;
-            if (isHost) {
-                const targetHand = gameState.players[targetId]?.hand.map(c=>c.display) || [];
-                alert(`🤫 【覗き見成功】\n対象の手札: ${targetHand.join(', ')}`);
-            } else {
-                myConnection.send({ type: 'peek', targetId: targetId });
-            }
-        }
-
-        // --- 捏造機能 ---
+        // --- ホスト専用：捏造機能 ---
         document.addEventListener('keydown', (e) => {
+            // ホスト以外はキーボードショートカット無効
+            if (!isHost) return; 
+
             if (e.shiftKey && e.key === 'V') {
                 const menu = document.getElementById('cheat-menu');
                 menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
@@ -527,12 +536,11 @@
         });
 
         function sendCheat() {
-            if(!gameState.isStarted) return alert("ゲーム開始前です");
+            if(!isHost || !gameState.isStarted) return;
             const val = document.getElementById('cheat-val').value.trim();
             if(!val) return;
             
-            if (isHost) handleGuestRequest({ type: 'cheat_play', cardDisplay: val }, { peer: myId });
-            else myConnection.send({ type: 'cheat_play', cardDisplay: val });
+            handleGuestRequest({ type: 'cheat_play', cardDisplay: val }, { peer: myId });
             
             document.getElementById('cheat-val').value = '';
             document.getElementById('cheat-menu').style.display = 'none';
