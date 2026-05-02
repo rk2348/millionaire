@@ -8,7 +8,6 @@ body {
     margin: 0; padding: 10px; overflow: hidden; height: 100vh; box-sizing: border-box;
     transition: background 1s ease;
 }
-/* 革命/11バック時の禍々しい背景 */
 body.reversed-bg { background: radial-gradient(circle at center, #8B0000 0%, #300000 100%); }
 
 .screen { display: none; animation: fadeIn 0.4s ease; } .active { display: block; }
@@ -48,13 +47,12 @@ input[type="text"]:focus { border-color: #00C9FF; box-shadow: 0 0 15px rgba(0, 2
 .player-list-item:hover { background: rgba(0,0,0,0.6); transform: scale(1.02); }
 #lobby-room-id { font-size: 48px; color: #fff; text-shadow: 0 0 20px #00C9FF; letter-spacing: 6px; display: block; margin: 15px 0; font-weight: 900; }
 
-/* ルールバッジ表示（ゲスト・ホスト共有） */
 .rule-badges-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; cursor: pointer; transition: 0.2s; border: 1px solid rgba(77,166,255,0.3);}
 .rule-badges-container:hover { background: rgba(0,0,0,0.4); border-color: #00C9FF;}
 .rule-badge { background: rgba(77,166,255,0.2); border: 1px solid #4DA6FF; color: #4DA6FF; padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; }
 .rule-badge.off { background: rgba(255,255,255,0.05); border-color: #555; color: #777; }
 
-/* カードデザイン（超美麗化） */
+/* カードデザイン */
 .card {
     display: inline-block; background: linear-gradient(135deg, #fff, #f0f0f0); color: #000;
     width: 65px; height: 95px; line-height: 95px; margin: 4px; border-radius: 8px; cursor: pointer;
@@ -65,20 +63,17 @@ input[type="text"]:focus { border-color: #00C9FF; box-shadow: 0 0 15px rgba(0, 2
 .card::before { content: ''; position: absolute; top: 3px; left: 3px; right: 3px; bottom: 3px; border: 1px solid rgba(0,0,0,0.1); border-radius: 4px; pointer-events: none; }
 .card:hover { transform: translateY(-10px) scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.6); z-index: 10; }
 .card.selected { border: 3px solid #00C9FF; box-shadow: 0 0 20px rgba(0, 201, 255, 0.8); transform: translateY(-15px); }
-.card.card-sm { width: 42px; height: 60px; line-height: 60px; font-size: 18px; border-width: 1px; }
 
 /* プレイヤー枠とターン */
 .player-box { padding: 10px 15px; margin: 5px; display: inline-block; border-radius: 12px; background: rgba(0,0,0,0.4); cursor: crosshair; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); min-width: 100px; }
 @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(0,201,255,0.7); } 70% { box-shadow: 0 0 20px 20px rgba(0,201,255,0); } 100% { box-shadow: 0 0 0 0 rgba(0,201,255,0); } }
 .active-turn { border-color: #00C9FF; background: rgba(0,201,255,0.15); transform: scale(1.1); animation: pulseGlow 1.5s infinite; }
 
-/* 情報パネル（ダサいテキスト直貼りの廃止） */
 .info-panel { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(0,0,0,0.5); border-radius: 10px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
 #turn-indicator { font-size: 24px; font-weight: 900; letter-spacing: 2px; padding: 8px 20px; border-radius: 30px; background: rgba(0,0,0,0.6); display: inline-block; margin: 10px 0; transition: 0.3s; }
 .turn-me { color: #f6d365; text-shadow: 0 0 15px #f6d365; border: 1px solid #f6d365; }
 .turn-other { color: #00C9FF; text-shadow: 0 0 10px #00C9FF; border: 1px solid #00C9FF; }
 
-/* テーブルと手札エリア */
 #table-area { height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 15px; margin: 15px 0; border: 1px dashed rgba(255,255,255,0.2); }
 #my-hand-container { background: rgba(0,0,0,0.4); border-radius: 15px; padding: 20px; min-height: 120px; border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
 
@@ -87,9 +82,8 @@ input[type="text"]:focus { border-color: #00C9FF; box-shadow: 0 0 15px rgba(0, 2
 .modal-content { background: rgba(15, 25, 35, 0.95); padding: 30px; border-radius: 15px; border: 1px solid #4DA6FF; box-shadow: 0 15px 50px rgba(0,0,0,0.8); color: #fff; max-width: 90vw; width: 500px; text-align: left; }
 .modal-title { margin-top: 0; border-bottom: 2px solid #4DA6FF; padding-bottom: 10px; font-size: 24px; display: flex; justify-content: space-between; align-items: center; }
 
-/* ルール設定用スイッチ */
+/* ルールスイッチ */
 .rule-item { background: rgba(255,255,255,0.05); padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
-.rule-item:hover { background: rgba(255,255,255,0.1); }
 .rule-explanation { background: rgba(0,0,0,0.6); padding: 20px; border-radius: 8px; margin-top: 20px; min-height: 120px; text-align: center; border: 1px dashed #4DA6FF; font-size: 14px; }
 .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
 .switch input { opacity: 0; width: 0; height: 0; }
@@ -100,20 +94,37 @@ input:checked + .slider:before { transform: translateX(24px); }
 input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
 .info-btn { background: #4DA6FF; color: #000; border-radius: 50%; width: 24px; height: 24px; line-height: 24px; text-align: center; display: inline-block; cursor: help; font-weight: 900; margin-right: 10px; }
 
-/* カスタムToast通知（alertの代わり） */
+/* Toast通知 */
 #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
 .toast { background: rgba(0, 0, 0, 0.85); color: #fff; padding: 12px 25px; border-radius: 30px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(5px); animation: slideDown 0.3s ease, fadeOut 0.3s ease 2.7s forwards; }
-.toast.info { border-left: 4px solid #00C9FF; }
-.toast.warning { border-left: 4px solid #ffcc00; }
-.toast.error { border-left: 4px solid #ff416c; }
+.toast.info { border-left: 4px solid #00C9FF; } .toast.warning { border-left: 4px solid #ffcc00; } .toast.error { border-left: 4px solid #ff416c; }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
 
-/* リザルト・いかさまメニュー */
 .win-text { color: #FFD700; text-shadow: 0 0 30px #FF8C00; font-size: 72px; margin: 0 0 10px 0; font-weight: 900; animation: winAnim 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 .lose-text { color: #A0B0C0; text-shadow: 0 0 15px #000; font-size: 56px; margin: 0 0 10px 0; font-weight: 900; animation: loseAnim 1.5s ease-out forwards; }
-#cheat-menu { border-color: #9400D3; box-shadow: 0 0 40px rgba(148,0,211,0.5); }
-.cheat-btn { background: linear-gradient(135deg, #4B0082, #800080); border: none; }
+
+/* === いかさま専用UIの圧倒的強化 === */
+#cheat-menu .modal-content { border-color: #ff00ff; box-shadow: 0 0 50px rgba(255,0,255,0.4); width: 400px; }
+.cheat-btn { background: linear-gradient(135deg, #800080, #ff00ff); border: none; color: white; text-shadow: 0 1px 2px #000; font-size: 16px; }
+.cheat-btn:hover { background: linear-gradient(135deg, #ff00ff, #ff88ff); box-shadow: 0 0 15px #ff00ff; }
+.card-selector-grid { display: flex; flex-wrap: wrap; justify-content: center; max-height: 240px; overflow-y: auto; margin: 15px 0; background: rgba(0, 0, 0, 0.6); padding: 10px; border-radius: 8px; border: 1px solid #ff00ff; box-shadow: inset 0 0 20px rgba(255,0,255,0.2); }
+.card-sm { width: 44px; height: 62px; line-height: 62px; font-size: 18px; margin: 3px; border-width: 1px; }
+
+/* 🔥 選択時の圧倒的オーラ 🔥 */
+.card-sm.cheat-selected {
+    border: 3px solid #ff00ff;
+    background: rgba(255, 0, 255, 0.2) !important;
+    box-shadow: 0 0 20px #ff00ff, inset 0 0 15px rgba(255,0,255,0.6);
+    transform: translateY(-8px) scale(1.15);
+    z-index: 10;
+}
+/* 🔥 チェックマークの追加 🔥 */
+.card-sm.cheat-selected::after {
+    content: "✔️"; position: absolute; top: -12px; right: -12px; font-size: 16px;
+    background: #ff00ff; border-radius: 50%; width: 24px; height: 24px; line-height: 24px;
+    color: white; text-align: center; box-shadow: 0 0 10px #ff00ff;
+}
 </style>
 </head><body>
 
@@ -146,12 +157,9 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
             <b id="lobby-room-id">----</b>
         </div>
         
-        <!-- ゲストも確認できるルールバッジエリア -->
         <div class="rule-badges-container" onclick="openRuleModal()" title="クリックでルールの詳細を確認">
             <div style="width: 100%; font-size: 12px; color: #aaa; margin-bottom: 5px;">📜 適用中のルール (クリックで詳細)</div>
-            <div id="rule-badge-list">
-                <!-- JSでバッジが生成される -->
-            </div>
+            <div id="rule-badge-list"></div>
         </div>
 
         <div style="text-align: left; margin-top: 20px;">
@@ -169,7 +177,6 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
 
 <!-- 3. ゲーム画面 -->
 <div id="game-screen" class="screen">
-    <!-- ダサいテキストを廃止し、グラスパネルのヘッダーに -->
     <div class="info-panel glass-panel">
         <div style="display: flex; align-items: center; gap: 15px;">
             <div style="text-align: left;">
@@ -182,7 +189,6 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
     </div>
 
     <div id="turn-indicator">----</div>
-    
     <div id="opponents" style="margin: 15px 0;"></div>
     
     <div id="table-area">
@@ -219,7 +225,6 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
     </div>
 </div>
 
-<!-- ルール設定/確認モーダル -->
 <div id="rule-modal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-title">
@@ -227,37 +232,20 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
             <button onclick="document.getElementById('rule-modal').style.display='none'" style="background:transparent; color:#aaa; font-size:20px; padding:0; margin:0; border:none;">✖</button>
         </div>
         <p id="rule-modal-desc" style="font-size:12px; color:#aaa; margin-bottom:15px;">※ホストのみ変更可能。ゲストは閲覧のみ。</p>
-        
         <div id="rule-list">
-            <div class="rule-item">
-                <div><span class="info-btn" onmouseover="showRuleExp('8cut')">?</span> <b>8切り</b></div>
-                <label class="switch"><input type="checkbox" id="rule-8cut" onchange="syncRules()"><span class="slider"></span></label>
-            </div>
-            <div class="rule-item">
-                <div><span class="info-btn" onmouseover="showRuleExp('kakumei')">?</span> <b>革命</b></div>
-                <label class="switch"><input type="checkbox" id="rule-kakumei" onchange="syncRules()"><span class="slider"></span></label>
-            </div>
-            <div class="rule-item">
-                <div><span class="info-btn" onmouseover="showRuleExp('11back')">?</span> <b>11バック</b></div>
-                <label class="switch"><input type="checkbox" id="rule-11back" onchange="syncRules()"><span class="slider"></span></label>
-            </div>
-            <div class="rule-item">
-                <div><span class="info-btn" onmouseover="showRuleExp('spade3')">?</span> <b>スペ3返し</b></div>
-                <label class="switch"><input type="checkbox" id="rule-spade3" onchange="syncRules()"><span class="slider"></span></label>
-            </div>
+            <div class="rule-item"><div><span class="info-btn" onmouseover="showRuleExp('8cut')">?</span> <b>8切り</b></div><label class="switch"><input type="checkbox" id="rule-8cut" onchange="syncRules()"><span class="slider"></span></label></div>
+            <div class="rule-item"><div><span class="info-btn" onmouseover="showRuleExp('kakumei')">?</span> <b>革命</b></div><label class="switch"><input type="checkbox" id="rule-kakumei" onchange="syncRules()"><span class="slider"></span></label></div>
+            <div class="rule-item"><div><span class="info-btn" onmouseover="showRuleExp('11back')">?</span> <b>11バック</b></div><label class="switch"><input type="checkbox" id="rule-11back" onchange="syncRules()"><span class="slider"></span></label></div>
+            <div class="rule-item"><div><span class="info-btn" onmouseover="showRuleExp('spade3')">?</span> <b>スペ3返し</b></div><label class="switch"><input type="checkbox" id="rule-spade3" onchange="syncRules()"><span class="slider"></span></label></div>
         </div>
-        
-        <div id="rule-explanation" class="rule-explanation">
-            <p style="color:#aaa; margin-top:35px;">「?」アイコンにカーソルを合わせると<br>イラスト付きの解説が表示されます。</p>
-        </div>
+        <div id="rule-explanation" class="rule-explanation"><p style="color:#aaa; margin-top:35px;">「?」アイコンにカーソルを合わせると<br>イラスト付きの解説が表示されます。</p></div>
     </div>
 </div>
 
-<!-- いかさまメニュー -->
 <div id="cheat-menu" class="modal-overlay">
-    <div class="modal-content" style="border-color:#9400D3; text-align: center;">
-        <h3 style="margin-top:0;color:#ff44ff;border-bottom:1px solid #ff44ff;padding-bottom:10px;">👁️ SYSTEM OVERRIDE</h3>
-        <p style="font-size:12px;color:#aaa;">👇 捏造して場に出すカードを選択（複数可） 👇</p>
+    <div class="modal-content" style="text-align: center;">
+        <h3 style="margin-top:0;color:#ff00ff;border-bottom:1px solid #ff00ff;padding-bottom:10px;">👁️ SYSTEM OVERRIDE</h3>
+        <p style="font-size:12px;color:#ccc;font-weight:bold;">👇 捏造して場に出すカードを選択（複数可） 👇</p>
         <div id="card-selector" class="card-selector-grid"></div>
         <button class="cheat-btn" onclick="sendCheatFake()" style="padding:15px;">🃏 選択したカードを強制出陣</button>
         <button class="cheat-btn" onclick="sendCheatBomb()" style="margin-top:10px; padding:15px; background:linear-gradient(135deg, #8b0000, #ff0000);">💣 場を完全に爆破しターン強奪</button>
@@ -266,7 +254,6 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
 </div>
 
 <script>
-// --- コアロジック（UI変更に合わせ改修） ---
 let peer, myConnection, isHost = false, myId = "", myName = "", selectedCards = [];
 let cheatClickCount = 0, isCheatMode = false, cheatSelectedCards = [];
 const RANK_MAP = {'3':1,'4':2,'5':3,'6':4,'7':5,'8':6,'9':7,'10':8,'J':9,'Q':10,'K':11,'A':12,'2':13,'Joker':99};
@@ -277,13 +264,10 @@ let gameState = {
     isRevolution: false, is11Back: false
 };
 
-// カスタムToast通知システム（alertの完全上位互換）
 function showToast(msg, type = 'info') {
     const container = document.getElementById('toast-container');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`; toast.innerText = msg;
-    container.appendChild(toast);
-    setTimeout(() => { toast.remove(); }, 3000);
+    const toast = document.createElement('div'); toast.className = `toast ${type}`; toast.innerText = msg;
+    container.appendChild(toast); setTimeout(() => { toast.remove(); }, 3000);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -329,85 +313,47 @@ function handleSelfClick() {
     cheatClickCount++;
     if(cheatClickCount === 9) {
         isCheatMode = !isCheatMode; cheatClickCount = 0;
-        if(isCheatMode) showToast("⚠️ SYSTEM HACKED ⚠️ 裏モード解放", "error");
-        else showToast("✅ NORMAL MODE に戻りました", "info");
+        if(isCheatMode) showToast("⚠️ SYSTEM HACKED ⚠️ 裏モード解放", "error"); else showToast("✅ NORMAL MODE に戻りました", "info");
         renderLobbyPlayers(); if(gameState.isStarted) updateGameUI(gameState);
     }
 }
 
-// --- ルール設定UIと同期（ゲスト対応版） ---
 function openRuleModal() {
     document.getElementById('rule-8cut').checked = gameState.rules.eightCut;
     document.getElementById('rule-kakumei').checked = gameState.rules.kakumei;
     document.getElementById('rule-11back').checked = gameState.rules.elevenBack;
     document.getElementById('rule-spade3').checked = gameState.rules.spade3;
-    
     const checkboxes = document.querySelectorAll('.switch input');
-    if(!isHost) {
-        checkboxes.forEach(cb => cb.disabled = true);
-        document.getElementById('rule-modal-title').innerText = "📖 ローカルルール確認";
-        document.getElementById('rule-modal-desc').style.display = 'none';
-    } else {
-        checkboxes.forEach(cb => cb.disabled = false);
-        document.getElementById('rule-modal-title').innerText = "⚙️ ローカルルール設定";
-        document.getElementById('rule-modal-desc').style.display = 'block';
-    }
+    if(!isHost) { checkboxes.forEach(cb => cb.disabled = true); document.getElementById('rule-modal-title').innerText = "📖 ローカルルール確認"; document.getElementById('rule-modal-desc').style.display = 'none'; }
+    else { checkboxes.forEach(cb => cb.disabled = false); document.getElementById('rule-modal-title').innerText = "⚙️ ローカルルール設定"; document.getElementById('rule-modal-desc').style.display = 'block'; }
     document.getElementById('rule-modal').style.display = 'flex';
 }
 
 function syncRules() {
     if(!isHost) return;
-    gameState.rules.eightCut = document.getElementById('rule-8cut').checked;
-    gameState.rules.kakumei = document.getElementById('rule-kakumei').checked;
-    gameState.rules.elevenBack = document.getElementById('rule-11back').checked;
-    gameState.rules.spade3 = document.getElementById('rule-spade3').checked;
-    renderRuleBadges();
-    Object.values(peer.connections).forEach(c=>c[0].send({type:'rule_update',rules:gameState.rules}));
+    gameState.rules.eightCut = document.getElementById('rule-8cut').checked; gameState.rules.kakumei = document.getElementById('rule-kakumei').checked;
+    gameState.rules.elevenBack = document.getElementById('rule-11back').checked; gameState.rules.spade3 = document.getElementById('rule-spade3').checked;
+    renderRuleBadges(); Object.values(peer.connections).forEach(c=>c[0].send({type:'rule_update',rules:gameState.rules}));
 }
 
-// ロビーに表示されるルールのバッジ（全員が見える）
 function renderRuleBadges() {
-    const list = document.getElementById('rule-badge-list');
-    const r = gameState.rules;
-    list.innerHTML = `
-        <span class="rule-badge ${r.eightCut ? '' : 'off'}">✂️ 8切り: ${r.eightCut?'ON':'OFF'}</span>
-        <span class="rule-badge ${r.kakumei ? '' : 'off'}">🔥 革命: ${r.kakumei?'ON':'OFF'}</span>
-        <span class="rule-badge ${r.elevenBack ? '' : 'off'}">🔄 11バック: ${r.elevenBack?'ON':'OFF'}</span>
-        <span class="rule-badge ${r.spade3 ? '' : 'off'}">♠️ スペ3返し: ${r.spade3?'ON':'OFF'}</span>
-    `;
+    const list = document.getElementById('rule-badge-list'), r = gameState.rules;
+    list.innerHTML = `<span class="rule-badge ${r.eightCut ? '' : 'off'}">✂️ 8切り: ${r.eightCut?'ON':'OFF'}</span> <span class="rule-badge ${r.kakumei ? '' : 'off'}">🔥 革命: ${r.kakumei?'ON':'OFF'}</span> <span class="rule-badge ${r.elevenBack ? '' : 'off'}">🔄 11バック: ${r.elevenBack?'ON':'OFF'}</span> <span class="rule-badge ${r.spade3 ? '' : 'off'}">♠️ スペ3返し: ${r.spade3?'ON':'OFF'}</span>`;
 }
 
 function showRuleExp(ruleType) {
     const exp = document.getElementById('rule-explanation');
-    if(ruleType === '8cut') {
-        exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:18px;">【8切り】</div>
-        <p>「8」を含めてカードを出した瞬間、場が強制的に流れ、出した人のターンから再開します。</p>
-        <div class="card card-sm" style="color:#000;">♠8</div> <span style="font-size:24px;vertical-align:middle;">➡️ 💥リセット</span>`;
-    } else if(ruleType === 'kakumei') {
-        exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:18px;">【革命】</div>
-        <p>同じ数字のカードを「4枚以上」出すと強さが逆転（3が最強、2が最弱）。もう一度出すと元に戻ります。</p>
-        <div class="card card-sm" style="color:#000;">♠4</div><div class="card card-sm" style="color:#d32f2f;">♥4</div><div class="card card-sm" style="color:#d32f2f;">♦4</div><div class="card card-sm" style="color:#000;">♣4</div> <span style="font-size:24px;vertical-align:middle;">➡️ 🔄逆転</span>`;
-    } else if(ruleType === '11back') {
-        exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:18px;">【11バック】</div>
-        <p>「J (11)」を含めてカードを出すと、場が流れるまでの間だけカードの強さが一時的に逆転します。</p>
-        <div class="card card-sm" style="color:#000;">♠J</div> <span style="font-size:24px;vertical-align:middle;">➡️ 🔄一時逆転</span>`;
-    } else if(ruleType === 'spade3') {
-        exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:18px;">【スペ3返し】</div>
-        <p>場に「ジョーカー単独」が出されている時のみ、「スペードの3」を出すことで撃墜できます。</p>
-        <div class="card card-sm" style="color:#000;">🃏</div> <span style="font-size:24px;vertical-align:middle;">🤛</span> <div class="card card-sm" style="color:#000;">♠3</div>`;
-    }
+    if(ruleType === '8cut') exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:18px;">【8切り】</div><p>「8」を含めてカードを出した瞬間、場が強制的に流れ、出した人のターンから再開します。</p><div class="card card-sm" style="color:#000;">♠8</div> <span style="font-size:24px;vertical-align:middle;">➡️ 💥リセット</span>`;
+    else if(ruleType === 'kakumei') exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:18px;">【革命】</div><p>同じ数字のカードを「4枚以上」出すと強さが逆転（3が最強、2が最弱）。もう一度出すと元に戻ります。</p><div class="card card-sm" style="color:#000;">♠4</div><div class="card card-sm" style="color:#d32f2f;">♥4</div><div class="card card-sm" style="color:#d32f2f;">♦4</div><div class="card card-sm" style="color:#000;">♣4</div> <span style="font-size:24px;vertical-align:middle;">➡️ 🔄逆転</span>`;
+    else if(ruleType === '11back') exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:18px;">【11バック】</div><p>「J (11)」を含めてカードを出すと、場が流れるまでの間だけカードの強さが一時的に逆転します。</p><div class="card card-sm" style="color:#000;">♠J</div> <span style="font-size:24px;vertical-align:middle;">➡️ 🔄一時逆転</span>`;
+    else if(ruleType === 'spade3') exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:18px;">【スペ3返し】</div><p>場に「ジョーカー単独」が出されている時のみ、「スペードの3」を出すことで撃墜できます。</p><div class="card card-sm" style="color:#000;">🃏</div> <span style="font-size:24px;vertical-align:middle;">🤛</span> <div class="card card-sm" style="color:#000;">♠3</div>`;
 }
 
-// --- 通信関連 ---
 function createRoom() {
     myName = getPlayerName(); switchScreen('lobby-screen'); document.getElementById('lobby-room-id').innerText = "接続中...";
     isHost=true; peer = new Peer(Math.random().toString(36).substring(2,7).toUpperCase());
     peer.on('error', err => { showToast("通信エラーが発生しました", "error"); leaveRoom();});
-    peer.on('open', id => { 
-        myId=id; document.getElementById('lobby-room-id').innerText=id; 
-        document.getElementById('btn-start-game').style.display='inline-block'; 
-        gameState.players[myId]={name:myName,hand:[],isPass:false}; updateLobbyUI(); renderRuleBadges();
-    });
+    peer.on('open', id => { myId=id; document.getElementById('lobby-room-id').innerText=id; document.getElementById('btn-start-game').style.display='inline-block'; gameState.players[myId]={name:myName,hand:[],isPass:false}; updateLobbyUI(); renderRuleBadges(); });
     peer.on('connection', conn => { conn.on('data', d => handleGuestRequest(d,conn)); conn.on('close', () => { delete gameState.players[conn.peer]; updateLobbyUI(); if(gameState.isStarted) broadcastState(); }); });
 }
 
@@ -433,8 +379,7 @@ function updateLobbyUI() { renderLobbyPlayers(); if(isHost) Object.values(peer.c
 function renderLobbyPlayers() {
     const arr = Object.entries(gameState.players); document.getElementById('player-count').innerText = arr.length;
     document.getElementById('lobby-players').innerHTML = arr.map(([id,p]) => {
-        const isMe = (id === myId);
-        const cheatMark = (isMe && isCheatMode) ? ' <span style="color:#ff44ff; text-shadow: 0 0 5px #ff44ff;" title="ハック起動中">👁️</span>' : '';
+        const isMe = (id === myId), cheatMark = (isMe && isCheatMode) ? ' <span style="color:#ff44ff; text-shadow: 0 0 5px #ff44ff;" title="ハック起動中">👁️</span>' : '';
         return `<div class="player-list-item" ${isMe?'onclick="handleSelfClick()"':''}>👤 ${p.name}${cheatMark}</div>`;
     }).join('');
     if(isHost) { const b=document.getElementById('btn-start-game'); if(arr.length>=2){b.disabled=false;b.innerText="🚀 ゲームを開始する";}else{b.disabled=true;b.innerText="2人以上で開始可能";} }
@@ -503,10 +448,12 @@ function processPlay(pId, idxs) {
     
     gameState.message = msg;
 
+    // 【修正箇所】8切りの場合はターンを進めず、そのプレイヤーのまま継続させる
     if(gameState.rules.eightCut && cards[0].value === '8') {
         gameState.message = `💥 8切り！ ${p.name} のターン継続`;
         gameState.tableCards = []; gameState.is11Back = false;
-        checkWinCondition(p, pId); return;
+        if(p.hand.length===0){ gameState.message=`🎉 ${p.name} が上がりました！`; gameState.isFinished=true; gameState.winnerId=pId; }
+        broadcastState(); return;
     }
 
     checkWinCondition(p, pId);
@@ -540,7 +487,7 @@ function updateGameUI(s) {
     document.getElementById('env-status').innerHTML = envHtml;
     
     if(isReversed) document.body.classList.add('reversed-bg'); else document.body.classList.remove('reversed-bg');
-    if(s.message) showToast(s.message, 'info'); // メッセージもToast化
+    if(s.message) showToast(s.message, 'info'); 
 
     if(s.isFinished) showResultOverlay(s.winnerId); else document.getElementById('result-overlay').style.display='none';
     const cTurn=s.turnOrder[s.currentTurnIdx], isMyTurn=(cTurn===myId)&&s.isStarted&&!s.isFinished;
