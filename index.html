@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>オンライン大富豪</title><script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <style>
-/* --- プレミアムUIデザイン（グラスモーフィズム＆カジノ調） --- */
+/* --- プレミアムUIデザイン（グラスモーフィズム＆レスポンシブ対応） --- */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
 body {
     background: radial-gradient(circle at center, #1E5C3A 0%, #0A2614 100%);
@@ -10,7 +10,11 @@ body {
 }
 body.reversed-bg { background: radial-gradient(circle at center, #8B0000 0%, #300000 100%); }
 
-.screen { display: none; animation: fadeIn 0.4s ease; } .active { display: block; }
+.screen { display: none; animation: fadeIn 0.4s ease; } 
+.screen.active { display: block; }
+/* ゲーム画面専用のFlexレイアウト（手札スクロール用） */
+#game-screen.active { display: flex; flex-direction: column; max-height: calc(100vh - 20px); }
+
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 /* 汎用グラスパネル */
@@ -37,12 +41,12 @@ button:disabled { background: #333; color: #777; box-shadow: none; cursor: not-a
 input[type="text"] {
     font-family: inherit; font-size: 16px; padding: 12px; margin: 5px; border-radius: 8px;
     border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: #fff;
-    text-align: center; outline: none; transition: 0.3s;
+    text-align: center; outline: none; transition: 0.3s; width: 80%; box-sizing: border-box;
 }
 input[type="text"]:focus { border-color: #00C9FF; box-shadow: 0 0 15px rgba(0, 201, 255, 0.4); }
 
 /* ロビー周り */
-.lobby-box { padding: 30px; max-width: 450px; margin: 2vh auto; position: relative; }
+.lobby-box { padding: 30px; max-width: 450px; margin: 2vh auto; position: relative; width: 100%; box-sizing: border-box; }
 .player-list-item { background: rgba(0,0,0,0.4); margin: 8px 0; padding: 12px; border-radius: 8px; font-weight: bold; letter-spacing: 1px; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s;}
 .player-list-item:hover { background: rgba(0,0,0,0.6); transform: scale(1.02); }
 #lobby-room-id { font-size: 48px; color: #fff; text-shadow: 0 0 20px #00C9FF; letter-spacing: 6px; display: block; margin: 15px 0; font-weight: 900; }
@@ -58,28 +62,39 @@ input[type="text"]:focus { border-color: #00C9FF; box-shadow: 0 0 15px rgba(0, 2
     width: 65px; height: 95px; line-height: 95px; margin: 4px; border-radius: 8px; cursor: pointer;
     font-weight: 900; font-size: 28px; box-shadow: 2px 4px 10px rgba(0,0,0,0.5);
     transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275); user-select: none; position: relative;
-    border: 1px solid #ccc;
+    border: 1px solid #ccc; box-sizing: border-box;
 }
 .card::before { content: ''; position: absolute; top: 3px; left: 3px; right: 3px; bottom: 3px; border: 1px solid rgba(0,0,0,0.1); border-radius: 4px; pointer-events: none; }
 .card:hover { transform: translateY(-10px) scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.6); z-index: 10; }
 .card.selected { border: 3px solid #00C9FF; box-shadow: 0 0 20px rgba(0, 201, 255, 0.8); transform: translateY(-15px); }
 
 /* プレイヤー枠とターン */
-.player-box { padding: 10px 15px; margin: 5px; display: inline-block; border-radius: 12px; background: rgba(0,0,0,0.4); cursor: crosshair; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); min-width: 100px; }
+.player-box { padding: 10px 15px; margin: 5px; display: inline-block; border-radius: 12px; background: rgba(0,0,0,0.4); cursor: crosshair; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); min-width: 80px; }
 @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(0,201,255,0.7); } 70% { box-shadow: 0 0 20px 20px rgba(0,201,255,0); } 100% { box-shadow: 0 0 0 0 rgba(0,201,255,0); } }
 .active-turn { border-color: #00C9FF; background: rgba(0,201,255,0.15); transform: scale(1.1); animation: pulseGlow 1.5s infinite; }
 
-.info-panel { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(0,0,0,0.5); border-radius: 10px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
-#turn-indicator { font-size: 24px; font-weight: 900; letter-spacing: 2px; padding: 8px 20px; border-radius: 30px; background: rgba(0,0,0,0.6); display: inline-block; margin: 10px 0; transition: 0.3s; }
+.info-panel { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(0,0,0,0.5); border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+#turn-indicator { font-size: 24px; font-weight: 900; letter-spacing: 2px; padding: 5px 20px; border-radius: 30px; background: rgba(0,0,0,0.6); display: inline-block; margin: 5px 0; transition: 0.3s; }
 .turn-me { color: #f6d365; text-shadow: 0 0 15px #f6d365; border: 1px solid #f6d365; }
 .turn-other { color: #00C9FF; text-shadow: 0 0 10px #00C9FF; border: 1px solid #00C9FF; }
 
-#table-area { height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 15px; margin: 15px 0; border: 1px dashed rgba(255,255,255,0.2); }
-#my-hand-container { background: rgba(0,0,0,0.4); border-radius: 15px; padding: 20px; min-height: 120px; border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
+#table-area { height: 130px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 15px; margin: 10px 0; border: 1px dashed rgba(255,255,255,0.2); flex-shrink: 0; }
+.action-area { flex-shrink: 0; margin-bottom: 10px; }
+
+/* 🔥手札エリアのスクロール対応化🔥 */
+#my-hand-container { 
+    background: rgba(0,0,0,0.4); border-radius: 15px; padding: 15px; 
+    border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 0 20px rgba(0,0,0,0.5); 
+    flex-grow: 1; overflow-y: auto; overflow-x: hidden; 
+}
+/* スクロールバーのカスタマイズ */
+#my-hand-container::-webkit-scrollbar { width: 6px; }
+#my-hand-container::-webkit-scrollbar-thumb { background: rgba(0, 201, 255, 0.5); border-radius: 3px; }
+#my-hand-container::-webkit-scrollbar-track { background: transparent; }
 
 /* モーダル群 */
 .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-.modal-content { background: rgba(15, 25, 35, 0.95); padding: 30px; border-radius: 15px; border: 1px solid #4DA6FF; box-shadow: 0 15px 50px rgba(0,0,0,0.8); color: #fff; max-width: 90vw; width: 500px; text-align: left; }
+.modal-content { background: rgba(15, 25, 35, 0.95); padding: 30px; border-radius: 15px; border: 1px solid #4DA6FF; box-shadow: 0 15px 50px rgba(0,0,0,0.8); color: #fff; max-width: 90vw; width: 500px; text-align: left; box-sizing: border-box; max-height: 90vh; overflow-y: auto; }
 .modal-title { margin-top: 0; border-bottom: 2px solid #4DA6FF; padding-bottom: 10px; font-size: 24px; display: flex; justify-content: space-between; align-items: center; }
 
 /* ルールスイッチ */
@@ -104,26 +119,32 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
 .win-text { color: #FFD700; text-shadow: 0 0 30px #FF8C00; font-size: 72px; margin: 0 0 10px 0; font-weight: 900; animation: winAnim 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 .lose-text { color: #A0B0C0; text-shadow: 0 0 15px #000; font-size: 56px; margin: 0 0 10px 0; font-weight: 900; animation: loseAnim 1.5s ease-out forwards; }
 
-/* === いかさま専用UIの圧倒的強化 === */
+/* === いかさま専用UI === */
 #cheat-menu .modal-content { border-color: #ff00ff; box-shadow: 0 0 50px rgba(255,0,255,0.4); width: 400px; }
-.cheat-btn { background: linear-gradient(135deg, #800080, #ff00ff); border: none; color: white; text-shadow: 0 1px 2px #000; font-size: 16px; }
+.cheat-btn { background: linear-gradient(135deg, #800080, #ff00ff); border: none; color: white; text-shadow: 0 1px 2px #000; font-size: 16px; width: 100%; box-sizing: border-box; margin: 5px 0;}
 .cheat-btn:hover { background: linear-gradient(135deg, #ff00ff, #ff88ff); box-shadow: 0 0 15px #ff00ff; }
 .card-selector-grid { display: flex; flex-wrap: wrap; justify-content: center; max-height: 240px; overflow-y: auto; margin: 15px 0; background: rgba(0, 0, 0, 0.6); padding: 10px; border-radius: 8px; border: 1px solid #ff00ff; box-shadow: inset 0 0 20px rgba(255,0,255,0.2); }
 .card-sm { width: 44px; height: 62px; line-height: 62px; font-size: 18px; margin: 3px; border-width: 1px; }
 
-/* 🔥 選択時の圧倒的オーラ 🔥 */
-.card-sm.cheat-selected {
-    border: 3px solid #ff00ff;
-    background: rgba(255, 0, 255, 0.2) !important;
-    box-shadow: 0 0 20px #ff00ff, inset 0 0 15px rgba(255,0,255,0.6);
-    transform: translateY(-8px) scale(1.15);
-    z-index: 10;
-}
-/* 🔥 チェックマークの追加 🔥 */
-.card-sm.cheat-selected::after {
-    content: "✔️"; position: absolute; top: -12px; right: -12px; font-size: 16px;
-    background: #ff00ff; border-radius: 50%; width: 24px; height: 24px; line-height: 24px;
-    color: white; text-align: center; box-shadow: 0 0 10px #ff00ff;
+.card-sm.cheat-selected { border: 3px solid #ff00ff; background: rgba(255, 0, 255, 0.2) !important; box-shadow: 0 0 20px #ff00ff, inset 0 0 15px rgba(255,0,255,0.6); transform: translateY(-8px) scale(1.15); z-index: 10; }
+.card-sm.cheat-selected::after { content: "✔️"; position: absolute; top: -12px; right: -12px; font-size: 16px; background: #ff00ff; border-radius: 50%; width: 24px; height: 24px; line-height: 24px; color: white; text-align: center; box-shadow: 0 0 10px #ff00ff; }
+
+/* 🔥 レスポンシブ対応（スマホ画面での最適化） 🔥 */
+@media screen and (max-width: 600px) {
+    /* スマホでカードを縮小し、スクロール領域を広く取る */
+    .card { width: 48px; height: 72px; line-height: 72px; font-size: 20px; margin: 2px; border-radius: 6px; }
+    .card.selected { transform: translateY(-10px); border-width: 2px; }
+    #table-area { height: 100px; margin: 5px 0; }
+    .info-panel { padding: 5px 10px; margin-bottom: 5px; }
+    #turn-indicator { font-size: 16px; padding: 5px 15px; margin: 0; }
+    .player-box { padding: 5px 10px; font-size: 12px; min-width: auto; }
+    .action-area button { font-size: 14px; padding: 10px 15px; }
+    
+    /* モーダルも画面に収める */
+    .modal-content { padding: 15px; }
+    .card-sm { width: 36px; height: 50px; line-height: 50px; font-size: 14px; }
+    .card-sm.cheat-selected::after { width: 20px; height: 20px; line-height: 20px; font-size: 12px; top: -8px; right: -8px; }
+    #lobby-room-id { font-size: 36px; }
 }
 </style>
 </head><body>
@@ -133,24 +154,24 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
 
 <!-- 1. セットアップ画面 -->
 <div id="setup-screen" class="screen active">
-    <h1 style="font-size: 36px; text-shadow: 0 5px 15px rgba(0,0,0,0.5);">🃏 オンライン大富豪</h1>
+    <h1 style="font-size: 36px; text-shadow: 0 5px 15px rgba(0,0,0,0.5); margin-top: 5vh;">🃏 オンライン大富豪</h1>
     <div class="lobby-box glass-panel">
         <div class="name-input-group">
             <div style="font-size: 14px; color: #ccc; margin-bottom: 5px;">👤 プレイヤーネーム</div>
-            <input type="text" id="player-name" placeholder="未入力で自動設定" maxlength="10" style="width: 80%;">
+            <input type="text" id="player-name" placeholder="未入力で自動設定" maxlength="10">
         </div>
         <button class="btn-primary" onclick="createRoom()" style="width: 85%; padding: 15px;">👑 部屋を作る（ホスト）</button>
         <div style="margin: 20px 0; display: flex; align-items: center; color: #777;">
             <div style="flex:1; height:1px; background:rgba(255,255,255,0.1);"></div><span style="padding: 0 10px;">または</span><div style="flex:1; height:1px; background:rgba(255,255,255,0.1);"></div>
         </div>
-        <input type="text" id="join-room-id" placeholder="5桁のIDを入力" style="width: 60%; text-transform: uppercase;">
+        <input type="text" id="join-room-id" placeholder="5桁のIDを入力" style="text-transform: uppercase;">
         <br><button onclick="joinRoom()" style="width: 85%; padding: 12px;">🚪 部屋に入る（ゲスト）</button>
     </div>
 </div>
 
 <!-- 2. 待機ロビー画面 -->
 <div id="lobby-screen" class="screen">
-    <div class="lobby-box glass-panel" style="max-width: 500px;">
+    <div class="lobby-box glass-panel">
         <h2 style="margin-top:0;">🚪 待機ロビー</h2>
         <div style="background: rgba(0,0,0,0.4); border-radius: 10px; padding: 15px; margin-bottom: 20px; border: 1px solid rgba(0,201,255,0.3);">
             <div style="font-size: 14px; color: #aaa;">招待用ルームID</div>
@@ -167,7 +188,7 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
             <div id="lobby-players"></div>
         </div>
 
-        <div style="margin-top: 30px; height: 60px;">
+        <div style="margin-top: 20px; min-height: 60px;">
             <button id="btn-start-game" class="btn-warning" onclick="startGame()" style="display:none; font-size: 18px; padding: 12px 30px; width: 100%;" disabled>2人以上で開始可能</button>
             <div id="waiting-msg" style="color: #00C9FF; font-weight: bold; display: none; padding: 15px; background: rgba(0,201,255,0.1); border-radius: 8px;">ホストがゲームを開始するのを待っています...</div>
         </div>
@@ -178,27 +199,27 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
 <!-- 3. ゲーム画面 -->
 <div id="game-screen" class="screen">
     <div class="info-panel glass-panel">
-        <div style="display: flex; align-items: center; gap: 15px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
             <div style="text-align: left;">
-                <div style="font-size: 12px; color: #aaa;">Player</div>
-                <b id="my-name-display" onclick="openCheatMenu()" title="クリックで..." style="cursor:pointer; font-size: 18px;"></b>
+                <div style="font-size: 10px; color: #aaa;">Player</div>
+                <b id="my-name-display" onclick="openCheatMenu()" title="クリックで..." style="cursor:pointer; font-size: 16px;"></b>
             </div>
-            <div id="env-status" style="display:flex; gap:5px;"></div>
+            <div id="env-status" style="display:flex; gap:5px; flex-wrap: wrap;"></div>
         </div>
-        <button onclick="confirmLeave()" class="btn-danger" style="padding: 8px 15px; font-size: 14px;">🚪 離脱</button>
+        <button onclick="confirmLeave()" class="btn-danger" style="padding: 6px 10px; font-size: 12px; margin: 0;">🚪 離脱</button>
     </div>
 
     <div id="turn-indicator">----</div>
-    <div id="opponents" style="margin: 15px 0;"></div>
+    <div id="opponents"></div>
     
     <div id="table-area">
-        <div style="font-size: 12px; color: #aaa; margin-bottom: 10px; letter-spacing: 2px;">TABLE CARDS</div>
+        <div style="font-size: 12px; color: #aaa; margin-bottom: 5px; letter-spacing: 2px;">TABLE CARDS</div>
         <div id="table">場にカードはありません</div>
     </div>
     
     <div class="action-area">
-        <button id="btn-play" class="btn-primary" onclick="submitPlay()" disabled style="padding: 12px 30px; font-size: 18px;">🃏 選択したカードを出す</button>
-        <button id="btn-pass" onclick="submitPass()" disabled style="padding: 12px 30px; font-size: 18px;">パス</button>
+        <button id="btn-play" class="btn-primary" onclick="submitPlay()" disabled>🃏 選択したカードを出す</button>
+        <button id="btn-pass" onclick="submitPass()" disabled>パス</button>
         <button onclick="clearSelection()" style="background: transparent; border: 1px solid #777;">選択解除</button>
     </div>
     
@@ -209,19 +230,19 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
 
 <!-- モーダル群 -->
 <div id="result-overlay" class="modal-overlay">
-    <h1 id="result-title"></h1><h3 id="result-subtitle" style="color:#ddd;font-size:24px;margin-bottom:40px;"></h3>
+    <h1 id="result-title"></h1><h3 id="result-subtitle" style="color:#ddd;font-size:20px;margin-bottom:30px;"></h3>
     <div>
-        <button class="btn-primary" onclick="playAgain()" style="font-size:20px;padding:15px 40px;margin:10px;">🔄 もう一度遊ぶ</button>
-        <button onclick="confirmLeave()" style="font-size:20px;padding:15px 40px;margin:10px;">🏠 タイトルに戻る</button>
+        <button class="btn-primary" onclick="playAgain()" style="font-size:18px;padding:12px 30px;margin:5px;">🔄 もう一度遊ぶ</button>
+        <button onclick="confirmLeave()" style="font-size:18px;padding:12px 30px;margin:5px;">🏠 タイトルに戻る</button>
     </div>
 </div>
 
 <div id="peek-modal" class="modal-overlay">
     <div class="modal-content" style="text-align: center;">
         <h3 style="margin-top:0;color:#00FA9A;border-bottom:1px solid #00FA9A;padding-bottom:10px;">👁️ 透視完了</h3>
-        <p id="peek-target-name" style="font-weight:bold; font-size: 18px;"></p>
+        <p id="peek-target-name" style="font-weight:bold; font-size: 16px;"></p>
         <div id="peek-cards"></div>
-        <button onclick="document.getElementById('peek-modal').style.display='none'" style="margin-top:20px; width: 50%;">閉じる</button>
+        <button onclick="document.getElementById('peek-modal').style.display='none'" style="margin-top:15px; width: 100%;">閉じる</button>
     </div>
 </div>
 
@@ -233,12 +254,12 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
         </div>
         <p id="rule-modal-desc" style="font-size:12px; color:#aaa; margin-bottom:15px;">※ホストのみ変更可能。ゲストは閲覧のみ。</p>
         <div id="rule-list">
-            <div class="rule-item"><div><span class="info-btn" onmouseover="showRuleExp('8cut')">?</span> <b>8切り</b></div><label class="switch"><input type="checkbox" id="rule-8cut" onchange="syncRules()"><span class="slider"></span></label></div>
-            <div class="rule-item"><div><span class="info-btn" onmouseover="showRuleExp('kakumei')">?</span> <b>革命</b></div><label class="switch"><input type="checkbox" id="rule-kakumei" onchange="syncRules()"><span class="slider"></span></label></div>
-            <div class="rule-item"><div><span class="info-btn" onmouseover="showRuleExp('11back')">?</span> <b>11バック</b></div><label class="switch"><input type="checkbox" id="rule-11back" onchange="syncRules()"><span class="slider"></span></label></div>
-            <div class="rule-item"><div><span class="info-btn" onmouseover="showRuleExp('spade3')">?</span> <b>スペ3返し</b></div><label class="switch"><input type="checkbox" id="rule-spade3" onchange="syncRules()"><span class="slider"></span></label></div>
+            <div class="rule-item"><div><span class="info-btn" onmouseover="showRuleExp('8cut')" onclick="showRuleExp('8cut')">?</span> <b>8切り</b></div><label class="switch"><input type="checkbox" id="rule-8cut" onchange="syncRules()"><span class="slider"></span></label></div>
+            <div class="rule-item"><div><span class="info-btn" onmouseover="showRuleExp('kakumei')" onclick="showRuleExp('kakumei')">?</span> <b>革命</b></div><label class="switch"><input type="checkbox" id="rule-kakumei" onchange="syncRules()"><span class="slider"></span></label></div>
+            <div class="rule-item"><div><span class="info-btn" onmouseover="showRuleExp('11back')" onclick="showRuleExp('11back')">?</span> <b>11バック</b></div><label class="switch"><input type="checkbox" id="rule-11back" onchange="syncRules()"><span class="slider"></span></label></div>
+            <div class="rule-item"><div><span class="info-btn" onmouseover="showRuleExp('spade3')" onclick="showRuleExp('spade3')">?</span> <b>スペ3返し</b></div><label class="switch"><input type="checkbox" id="rule-spade3" onchange="syncRules()"><span class="slider"></span></label></div>
         </div>
-        <div id="rule-explanation" class="rule-explanation"><p style="color:#aaa; margin-top:35px;">「?」アイコンにカーソルを合わせると<br>イラスト付きの解説が表示されます。</p></div>
+        <div id="rule-explanation" class="rule-explanation"><p style="color:#aaa; margin-top:25px;">「?」アイコンに触れると<br>イラスト付きの解説が表示されます。</p></div>
     </div>
 </div>
 
@@ -249,7 +270,7 @@ input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
         <div id="card-selector" class="card-selector-grid"></div>
         <button class="cheat-btn" onclick="sendCheatFake()" style="padding:15px;">🃏 選択したカードを強制出陣</button>
         <button class="cheat-btn" onclick="sendCheatBomb()" style="margin-top:10px; padding:15px; background:linear-gradient(135deg, #8b0000, #ff0000);">💣 場を完全に爆破しターン強奪</button>
-        <button onclick="document.getElementById('cheat-menu').style.display='none'; cheatSelectedCards=[]; updateCheatUI();" style="background:transparent;border:1px solid #777; margin-top:20px; width: 50%;">閉じる</button>
+        <button onclick="document.getElementById('cheat-menu').style.display='none'; cheatSelectedCards=[]; updateCheatUI();" style="background:transparent;border:1px solid #777; margin-top:15px; width: 100%;">閉じる</button>
     </div>
 </div>
 
@@ -343,10 +364,10 @@ function renderRuleBadges() {
 
 function showRuleExp(ruleType) {
     const exp = document.getElementById('rule-explanation');
-    if(ruleType === '8cut') exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:18px;">【8切り】</div><p>「8」を含めてカードを出した瞬間、場が強制的に流れ、出した人のターンから再開します。</p><div class="card card-sm" style="color:#000;">♠8</div> <span style="font-size:24px;vertical-align:middle;">➡️ 💥リセット</span>`;
-    else if(ruleType === 'kakumei') exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:18px;">【革命】</div><p>同じ数字のカードを「4枚以上」出すと強さが逆転（3が最強、2が最弱）。もう一度出すと元に戻ります。</p><div class="card card-sm" style="color:#000;">♠4</div><div class="card card-sm" style="color:#d32f2f;">♥4</div><div class="card card-sm" style="color:#d32f2f;">♦4</div><div class="card card-sm" style="color:#000;">♣4</div> <span style="font-size:24px;vertical-align:middle;">➡️ 🔄逆転</span>`;
-    else if(ruleType === '11back') exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:18px;">【11バック】</div><p>「J (11)」を含めてカードを出すと、場が流れるまでの間だけカードの強さが一時的に逆転します。</p><div class="card card-sm" style="color:#000;">♠J</div> <span style="font-size:24px;vertical-align:middle;">➡️ 🔄一時逆転</span>`;
-    else if(ruleType === 'spade3') exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:18px;">【スペ3返し】</div><p>場に「ジョーカー単独」が出されている時のみ、「スペードの3」を出すことで撃墜できます。</p><div class="card card-sm" style="color:#000;">🃏</div> <span style="font-size:24px;vertical-align:middle;">🤛</span> <div class="card card-sm" style="color:#000;">♠3</div>`;
+    if(ruleType === '8cut') exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:16px;">【8切り】</div><p style="font-size:12px; margin:5px 0;">「8」を含めてカードを出した瞬間、場が強制的に流れ、出した人のターンから再開します。</p><div class="card card-sm" style="color:#000;">♠8</div> <span style="font-size:20px;vertical-align:middle;">➡️ 💥リセット</span>`;
+    else if(ruleType === 'kakumei') exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:16px;">【革命】</div><p style="font-size:12px; margin:5px 0;">同じ数字を「4枚以上」出すと強さが逆転（3が最強、2が最弱）。もう一度出すと元に戻ります。</p><div class="card card-sm" style="color:#000;">♠4</div><div class="card card-sm" style="color:#d32f2f;">♥4</div><div class="card card-sm" style="color:#d32f2f;">♦4</div><div class="card card-sm" style="color:#000;">♣4</div> <span style="font-size:20px;vertical-align:middle;">➡️ 🔄逆転</span>`;
+    else if(ruleType === '11back') exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:16px;">【11バック】</div><p style="font-size:12px; margin:5px 0;">「J (11)」を含めてカードを出すと、場が流れるまでの間だけカードの強さが一時的に逆転します。</p><div class="card card-sm" style="color:#000;">♠J</div> <span style="font-size:20px;vertical-align:middle;">➡️ 🔄一時逆転</span>`;
+    else if(ruleType === 'spade3') exp.innerHTML = `<div style="font-weight:bold;color:#4DA6FF;font-size:16px;">【スペ3返し】</div><p style="font-size:12px; margin:5px 0;">場に「ジョーカー単独」が出されている時のみ、「スペードの3」を出すことで撃墜できます。</p><div class="card card-sm" style="color:#000;">🃏</div> <span style="font-size:20px;vertical-align:middle;">🤛</span> <div class="card card-sm" style="color:#000;">♠3</div>`;
 }
 
 function createRoom() {
@@ -448,7 +469,6 @@ function processPlay(pId, idxs) {
     
     gameState.message = msg;
 
-    // 【修正箇所】8切りの場合はターンを進めず、そのプレイヤーのまま継続させる
     if(gameState.rules.eightCut && cards[0].value === '8') {
         gameState.message = `💥 8切り！ ${p.name} のターン継続`;
         gameState.tableCards = []; gameState.is11Back = false;
@@ -501,7 +521,7 @@ function updateGameUI(s) {
 
     document.getElementById('table').innerHTML=s.tableCards.length?s.tableCards.map(c=>renderCard(c,false)).join(''):"<span style='color:rgba(255,255,255,0.3); font-weight:bold;'>空のテーブル</span>";
     document.getElementById('opponents').innerHTML = Object.entries(s.players).filter(([id])=>id!==myId).map(([id,p])=>
-        `<div class="player-box ${(id===cTurn&&!s.isFinished)?'active-turn':''}" ondblclick="requestPeek('${id}')">👤 ${p.name} <br> 🃏 <b style="font-size:20px;">${p.hand?p.hand.length:0}</b> 枚 ${p.isPass?'<br><span style="color:#ff416c; font-size:12px;">(パス)</span>':''}</div>`
+        `<div class="player-box ${(id===cTurn&&!s.isFinished)?'active-turn':''}" ondblclick="requestPeek('${id}')"><div style="font-size:12px;">👤 ${p.name}</div>🃏 <b style="font-size:16px;">${p.hand?p.hand.length:0}</b> 枚 ${p.isPass?'<br><span style="color:#ff416c; font-size:10px;">(パス)</span>':''}</div>`
     ).join('');
     renderMyHand();
 }
