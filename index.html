@@ -426,7 +426,7 @@ function handleGuestRequest(data, conn) {
     else if(data.type==='cheat_fake') {
         const fakes = data.cardDisplays; 
         for(let i=0; i<fakes.length; i++) { if(player.hand.length>0) player.hand.splice(Math.floor(Math.random()*player.hand.length),1); }
-        gameState.tableCards = fakes.map(f => ({suit:'?',value:f.replace(/[^0-9JQKA]/g,''),rank:RANK_MAP[f.replace(/[^0-9JQKA]/g,'')]||99,display:f}));
+        //gameState.tableCards = fakes.map(f => ({suit:'?',value:f.replace(/[^0-9JQKA]/g,''),rank:RANK_MAP[f.replace(/[^0-9JQKA]/g,'')]||99,display:f}));
         gameState.lastPlayedId=pId; gameState.message=`⚠️ ${player.name}が謎のカードを出しました`;
         for(let id in gameState.players) gameState.players[id].isPass=false; checkWinCondition(player,pId);
     }
